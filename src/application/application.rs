@@ -168,6 +168,7 @@ impl Application {
             let scaled_aspect_ratio = w / h;
             
             let frame_dimensions = Vec2::new(aspect_ratio, 1.0);
+            let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio, 1.0);
             let window_dimensions = Vec2::new(w, h);
 
             // event handling
@@ -204,6 +205,7 @@ impl Application {
             let state_data = StateData {
                 delta_time: delta_time.as_secs_f32(),
                 frame_dimensions,
+                scaled_frame_dimensions,
                 window_dimensions: Vec2::new(w, h),
                 aspect_ratio,
                 mouse_position,
@@ -213,6 +215,13 @@ impl Application {
             // drawing
 
             let mut frame = display.draw();
+
+            if states.len() == 0 {
+                frame.finish()
+                    .expect("GUI::APPLICATION Failed to finish frame");
+
+                return;
+            }
 
             let index = states.len() - 1;
             let trans = states[index].draw(

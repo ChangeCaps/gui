@@ -16,7 +16,6 @@ pub use state::*;
 pub use frame::*;
 pub use rendering::{
     Anchor,
-    traits::*,
 };
 pub use img::*;
 pub use image::ImageFormat::*;
