@@ -12,6 +12,7 @@ pub struct Frame<'f> {
     pub(crate) simple_transform_fill: &'f Program,
     pub(crate) simple_transform_ellipse: &'f Program,
     pub(crate) no_transform_line: &'f Program,
+    pub(crate) texture: &'f Program,
     pub(crate) display: &'f Display,
     pub(crate) window_dimensions: Vec2<f32>,
     pub(crate) aspect_ratio: f32,
@@ -29,6 +30,10 @@ impl<'f> Frame<'f> {
 
     pub fn ellipse<'s>(&'s mut self) -> Ellipse<'s, 'f> {
         Ellipse::new(self)
+    }
+
+    pub fn image<'s>(&'s mut self, image: &'s super::super::Image) -> rendering::Image<'s, 'f> {
+        rendering::Image::new(self, image)
     }
 
     pub fn clear(&mut self) {

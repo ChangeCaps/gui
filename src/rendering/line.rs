@@ -37,31 +37,6 @@ impl<'s, 'f> Line<'s, 'f> {
         self
     }
 
-    pub fn width(mut self, width: f32) -> Self {
-        self.width = width;
-        self
-    }
-
-    pub fn smooth(mut self) -> Self {
-        self.smooth = true;
-        self
-    }
-
-    pub fn color(mut self, color: [f32; 4]) -> Self {
-        self.color = color;
-        self
-    }
-
-    pub fn anchor(mut self, anchor: Anchor) -> Self {
-        self.anchor = anchor;
-        self
-    }
-
-    pub fn scaling(mut self) -> Self {
-        self.scaling = true;
-        self
-    }
-
     pub fn draw(self) {
         let a = (self.p1 - self.p0).normalize();
         
@@ -116,3 +91,9 @@ impl<'s, 'f> Line<'s, 'f> {
         ).expect("failed to draw rect");
     }
 }
+
+color!(Line);
+anchor!(Line);
+smooth!(Line);
+width!(Line);
+scaling!(Line);

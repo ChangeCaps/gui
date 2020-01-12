@@ -64,7 +64,7 @@ impl Application {
         self
     }
 
-    pub fn run(self, state: Box<dyn State>) {
+    pub fn run(self, start: fn(&super::super::Loader) -> Box<dyn State>) {
         //
         // initialization
         //
@@ -122,7 +122,15 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::INITIALIZATION No Transform Line program loaded\n");
 
+        let texture = Program::from_source(
+            &display, 
+            include_str!("../shaders/vertex/texture.glsl"), 
+            include_str!("../shaders/fragment/texture.glsl"), 
+            None
+        ).expect("GUI::INITIALIZATION Failed to load Texture shader");
         
+        #[cfg(debug_assertions)]
+        println!("GUI::INITIALIZATION Texture loaded\n");   
 
 
         //
@@ -136,7 +144,14 @@ impl Application {
         let mut mouse_position = Vec2::new(0.0, 0.0);
         let mut scaled_mouse_position = Vec2::new(0.0, 0.0);
 
-        let mut states = vec![state];
+        #[cfg(debug_assertions)]
+        println!("GUI::APPLICATION Running start function");
+
+        let loader = super::super::Loader {
+            display: &display,
+        };
+
+        let mut states = vec![start(&loader)];
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
@@ -206,6 +221,7 @@ impl Application {
                     simple_transform_fill: &simple_transform_fill,
                     simple_transform_ellipse: &simple_transform_ellipse,
                     no_transform_line: &no_transform_line,
+                    texture: &texture,
                     display: &display,
                     window_dimensions: Vec2::new(w, h),
                     aspect_ratio,
