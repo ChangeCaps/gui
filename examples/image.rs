@@ -5,17 +5,19 @@ use gui::*;
 struct Square;
 
 impl State for Square {
-    fn draw(&mut self, _frame: Frame) -> Transition {
-
+    fn draw(&mut self, mut frame: Frame, state_data: StateData) -> Transition {
+        frame.rect()
+            .color(color::rgb(0.2, 0.7, 0.5))
+            .size(state_data.window_dimensions - (0.1, 0.1))
+            .draw();
 
         Transition::None
     }
 }
 
 fn main() {
-    let app = gui::Application::new().build();
-
     let square = Square;
 
-    app.run(Box::new(square));
+    Application::new()
+        .run(Box::new(square));
 }
