@@ -10,6 +10,7 @@ pub enum Anchor {
     BottomMiddle,
     BottomLeft,
     MiddleLeft,
+    Custom(Vec2<f32>),
 }
 
 impl Anchor {
@@ -26,6 +27,7 @@ impl Anchor {
             BottomMiddle => Vec2::new(0.0, -1.0),
             BottomLeft => Vec2::new(-1.0, -1.0),
             MiddleLeft => Vec2::new(-1.0, 0.0),
+            Custom(vec) => vec
         }
     }
 }

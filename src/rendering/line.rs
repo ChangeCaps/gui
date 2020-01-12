@@ -4,31 +4,24 @@ use math::*;
 use glium;
 use glium::Surface;
 
-static RECT_VERTS: &[Vertex] = &[
-    Vertex { position: [0.5, 0.5] },
-    Vertex { position: [0.5, -0.5] },
-    Vertex { position: [-0.5, 0.5] },
-    Vertex { position: [-0.5, -0.5] },
-];
-
 static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
 
-pub struct Rect<'s, 'f> {
-    position: Vec2<f32>,
-    size: Vec2<f32>,
-    rotation: f32,
+pub struct Line<'s, 'f> {
+    p0: Vec2<f32>,
+    p1: Vec2<f32>,
+    width: f32,
     color: [f32; 4],
-    frame: &'s mut Frame<'f>,
     anchor: Anchor,
     scaling: bool,
+    frame: &'s mut Frame<'f>,
 }
 
-impl<'s, 'f> Rect<'s, 'f> {
+impl<'s, 'f> Line<'s, 'f> {
     pub fn new(frame: &'s mut Frame<'f>) -> Self {
         Self {
-            position: Vec2::new(0.0, 0.0),
-            size: Vec2::new(0.2, 0.2),
-            rotation: 0.0,
+            p0: Vec2::new(0.2, 0.2),
+            p1: Vec2::new(-0.2, -0.2),
+            width: 0.02,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             scaling: false,
@@ -36,18 +29,14 @@ impl<'s, 'f> Rect<'s, 'f> {
         }
     }
 
-    pub fn position(mut self, position: Vec2<f32>) -> Self {
-        self.position = position;
+    pub fn points(mut self, p0: Vec2<f32>, p1: Vec2<f32>) -> Self {
+        self.p0 = p0;
+        self.p1 = p1;
         self
     }
 
-    pub fn size(mut self, size: Vec2<f32>) -> Self {
-        self.size = size;
-        self
-    }
-
-    pub fn rotation(mut self, rotation: f32) -> Self {
-        self.rotation = rotation;
+    pub fn width(mut self, width: f32) -> Self {
+        self.width = width;
         self
     }
 
@@ -67,16 +56,31 @@ impl<'s, 'f> Rect<'s, 'f> {
     }
 
     pub fn draw(self) {
-        let vertex_buffer = glium::VertexBuffer::new(self.frame.display, RECT_VERTS)
+        let a = self.p1 - self.p0;
+        
+        let v0 = Vec2::new(a.y, -a.x) * self.width + self.p0;
+        let v1 = Vec2::new(a.y, -a.x) * self.width + self.p1;
+        let v2 = Vec2::new(-a.y, a.x) * self.width + self.p0;
+        let v3 = Vec2::new(-a.y, a.x) * self.width + self.p1;
+
+        let verts = &[
+            Vertex{ position: v0.as_array()},
+            Vertex{ position: v1.as_array()},
+            Vertex{ position: v2.as_array()},
+            Vertex{ position: v3.as_array()},
+        ];
+
+        let vertex_buffer = glium::VertexBuffer::new(self.frame.display, verts)
             .expect("failed to create vertex buffer");
 
         let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
 
         let uniforms = uniform!{
-            pos: self.position.as_array(),
-            size: self.size.as_array(),
-            rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
+            p0: self.p0.as_array(),
+            p1: self.p1.as_array(),
+            width: self.width,
+            rotation: Mat2::<f32>::from_degrees(0.0).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             scaling: self.scaling,
             window_dimensions: self.frame.window_dimensions,
@@ -91,7 +95,7 @@ impl<'s, 'f> Rect<'s, 'f> {
         self.frame.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            self.frame.simple_transform_fill,
+            self.frame.no_transform_line,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");

@@ -75,6 +75,16 @@ macro_rules! impl_op_ass {
     };
 }
 
+macro_rules! impl_float {
+    ($float:ident) => {
+        impl Vec2<$float> {
+            pub fn magnitude(self) -> $float {
+                (self.x * self.x + self.y * self.y).sqrt()
+            }
+        }
+    };
+}
+
 use std::ops::{
     Add,
     Sub,
@@ -102,7 +112,7 @@ impl<I> Vec2<I> {
 
     pub fn as_array(self) -> [I; 2] {
         [self.x, self.y]
-    }
+    }   
 }
 
 impl<I> Into<[I; 2]> for Vec2<I> {
@@ -120,3 +130,6 @@ impl_op_ass!(AddAssign, add_assign, +=);
 impl_op_ass!(SubAssign, sub_assign, -=);
 impl_op_ass!(MulAssign, mul_assign, *=);
 impl_op_ass!(DivAssign, div_assign, /=);
+
+impl_float!(f32);
+impl_float!(f64);

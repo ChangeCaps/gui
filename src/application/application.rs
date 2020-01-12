@@ -23,7 +23,6 @@ use std::time::{Instant, Duration};
 pub struct Application {
     pub title: &'static str,
     pub frame_time: Duration,
-    pub scale_aspect_ratio: bool,
 }
 
 impl Application {
@@ -31,7 +30,6 @@ impl Application {
         Application {
             title: "gui application",
             frame_time: Duration::from_secs_f32(1.0/60.0),
-            scale_aspect_ratio: true,
         }
     }
 
@@ -45,12 +43,7 @@ impl Application {
         self
     }
 
-    pub fn scale_aspect_ratio(mut self, scale_aspect_ratio: bool) -> Application {
-        self.scale_aspect_ratio = scale_aspect_ratio;
-        self
-    }
-
-    pub fn run(self, mut state: Box<dyn State>) {
+    pub fn run(self, state: Box<dyn State>) {
         //
         // initialization
         //
@@ -74,12 +67,20 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::INITIALIZATION Loading Shaders");
 
-        let fill_polygon = Program::from_source(
+        let simple_transform_fill = Program::from_source(
             &display, 
-            include_str!("..\\shaders\\simple_transform.glsl"), 
-            include_str!("..\\shaders\\fill.glsl"), 
+            include_str!("../shaders/simple_transform.glsl"), 
+            include_str!("../shaders/fill.glsl"), 
             None
-        ).expect("GUI::INITIALIZATION Failed to load Fill Polygon shader");
+        ).expect("GUI::INITIALIZATION Failed to load Simple Transform Fill shader");
+
+        let no_transform_line = Program::from_source(
+            &display, 
+            include_str!("../shaders/no_transform.glsl"), 
+            include_str!("../shaders/line.glsl"), 
+            None
+        ).expect("GUI::INITIALIZATION Failed to load No Transform Line shader");
+        
 
         #[cfg(debug_assertions)]
         println!("GUI::INITIALIZATION Fill Polygon program loaded\n");
@@ -95,9 +96,11 @@ impl Application {
 
         let mut last_frame = Instant::now();
 
+        let mut states = vec![state];
+
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
-        
+
         event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::WaitUntil(Instant::now() + self.frame_time);
 
@@ -141,12 +144,13 @@ impl Application {
 
             let mut frame = display.draw();
 
-            state.draw(
+            let index = states.len() - 1;
+            let trans = states[index].draw(
                 Frame {
                     frame: &mut frame,
-                    fill_polygon: &fill_polygon,
+                    simple_transform_fill: &simple_transform_fill,
+                    no_transform_line: &no_transform_line,
                     display: &display,
-                    scale_aspect_ratio: self.scale_aspect_ratio,
                     window_dimensions: [dims.0 as f32, dims.1 as f32],
                 },
                 state_data,
@@ -154,6 +158,21 @@ impl Application {
 
             frame.finish()
                 .expect("GUI::APPLICATION Failed to finish frame");
+
+            match trans {
+                Transition::Trans(state) => {
+                    states = vec![state];
+                },
+                Transition::Push(state) => {
+                    states.push(state);
+                },
+                Transition::Pop => {
+                    if states.pop().is_none() {
+                        *flow = ControlFlow::Exit;
+                    }
+                },
+                Transition::None => (),
+            }
         });
     }
 }

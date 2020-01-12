@@ -1,8 +1,5 @@
 #version 450
 
-uniform mat2 rotation;
-uniform vec2 pos;
-uniform vec2 size;
 uniform vec2 window_dimensions;
 uniform vec2 anchor;
 uniform bool scaling;
@@ -10,7 +7,7 @@ uniform bool scaling;
 in vec2 position;
 
 void main() {
-    vec2 vertex_position = position * size * rotation + pos;
+    vec2 vertex_position = position;
 
     if (!scaling) {
         vertex_position *= (window_dimensions/max(window_dimensions.x, window_dimensions.y)).yx;

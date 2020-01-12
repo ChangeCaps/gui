@@ -1,14 +1,18 @@
 extern crate gui;
 
 use gui::*;
+use math::*;
 
 struct Square;
 
 impl State for Square {
     fn draw(&mut self, mut frame: Frame, state_data: StateData) -> Transition {
-        frame.rect()
-            .color(color::rgb(0.2, 0.7, 0.5))
-            .size(state_data.window_dimensions - (0.1, 0.1))
+        frame.line()
+            .points(
+                Vec2::new(0.7, 0.8),
+                Vec2::new(0.0, 0.2)
+            )
+            .anchor(Anchor::BottomLeft)
             .draw();
 
         Transition::None
