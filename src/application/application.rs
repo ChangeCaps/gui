@@ -171,8 +171,6 @@ impl Application {
                         scaled_mouse_position.x *= scaled_aspect_ratio;
 
                         mouse_position.x *= aspect_ratio;
-
-                        *flow = ControlFlow::Poll;
                     },
                     _ => *flow = ControlFlow::Poll,
                 },
@@ -181,7 +179,7 @@ impl Application {
                     StartCause::Init => (),
                     _ => return,
                 }, 
-                _ => *flow = ControlFlow::Poll,
+                _ => return,
             } 
 
 
