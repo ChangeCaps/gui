@@ -81,6 +81,10 @@ macro_rules! impl_float {
             pub fn magnitude(self) -> $float {
                 (self.x * self.x + self.y * self.y).sqrt()
             }
+
+            pub fn normalize(self) -> Vec2<$float> {
+                self / self.magnitude()
+            }
         }
     };
 }
@@ -94,6 +98,7 @@ use std::ops::{
     SubAssign,
     MulAssign,
     DivAssign,
+    Neg
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -118,6 +123,16 @@ impl<I> Vec2<I> {
 impl<I> Into<[I; 2]> for Vec2<I> {
     fn into(self) -> [I; 2] {
         self.as_array()
+    }
+}
+
+impl<I> Neg for Vec2<I> 
+    where I: Neg
+{
+    type Output = Vec2<<I as Neg>::Output>;
+
+    fn neg(self) -> Self::Output {
+        Vec2::new(-self.x, -self.y)
     }
 }
 

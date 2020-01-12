@@ -23,6 +23,9 @@ use std::time::{Instant, Duration};
 pub struct Application {
     pub title: &'static str,
     pub frame_time: Duration,
+    pub aspect_ratio: f32,
+    pub resizable: bool,
+    pub window_size: Vec2<u32>,
 }
 
 impl Application {
@@ -30,6 +33,9 @@ impl Application {
         Application {
             title: "gui application",
             frame_time: Duration::from_secs_f32(1.0/60.0),
+            aspect_ratio: 4.0/3.0,
+            resizable: true,
+            window_size: Vec2::new(800, 600),
         }
     }
 
@@ -40,6 +46,21 @@ impl Application {
 
     pub fn with_fps(mut self, fps: f32) -> Application {
         self.frame_time = Duration::from_secs_f32(1.0/fps);
+        self
+    }
+
+    pub fn with_aspect_ratio(mut self, aspect_ratio: f32) -> Application {
+        self.aspect_ratio = aspect_ratio;
+        self
+    }
+
+    pub fn not_resizable(mut self) -> Application {
+        self.resizable = false;
+        self
+    }
+
+    pub fn with_window_size(mut self, width: u32, height: u32) -> Application {
+        self.window_size = Vec2::new(width, height);
         self
     }
 
@@ -54,6 +75,10 @@ impl Application {
         let event_loop = EventLoop::new();
 
         let wb = WindowBuilder::new()
+            .with_resizable(self.resizable)
+            .with_inner_size(
+                glium::glutin::dpi::LogicalSize::new(self.window_size.x as f64, self.window_size.y as f64)
+            )
             .with_title(self.title);
 
         let cb = ContextBuilder::new();
@@ -69,22 +94,35 @@ impl Application {
 
         let simple_transform_fill = Program::from_source(
             &display, 
-            include_str!("../shaders/simple_transform.glsl"), 
-            include_str!("../shaders/fill.glsl"), 
+            include_str!("../shaders/vertex/simple_transform.glsl"), 
+            include_str!("../shaders/fragment/fill.glsl"), 
             None
         ).expect("GUI::INITIALIZATION Failed to load Simple Transform Fill shader");
 
+        #[cfg(debug_assertions)]
+        println!("GUI::INITIALIZATION Simple Transform Fill program loaded");
+
+        let simple_transform_ellipse = Program::from_source(
+            &display, 
+            include_str!("../shaders/vertex/simple_transform.glsl"), 
+            include_str!("../shaders/fragment/ellipse.glsl"), 
+            None
+        ).expect("GUI::INITIALIZATION Failed to load Simple Transform Ellipse shader");
+
+        #[cfg(debug_assertions)]
+        println!("GUI::INITIALIZATION Simple Transform Ellipse program loaded");
+
         let no_transform_line = Program::from_source(
             &display, 
-            include_str!("../shaders/no_transform.glsl"), 
-            include_str!("../shaders/line.glsl"), 
+            include_str!("../shaders/vertex/no_transform.glsl"), 
+            include_str!("../shaders/fragment/line.glsl"), 
             None
         ).expect("GUI::INITIALIZATION Failed to load No Transform Line shader");
         
-
         #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION Fill Polygon program loaded\n");
+        println!("GUI::INITIALIZATION No Transform Line program loaded\n");
 
+        
 
 
         //
@@ -95,6 +133,8 @@ impl Application {
         println!("GUI::APPLICATION Starting Application");
 
         let mut last_frame = Instant::now();
+        let mut mouse_position = Vec2::new(0.0, 0.0);
+        let mut scaled_mouse_position = Vec2::new(0.0, 0.0);
 
         let mut states = vec![state];
 
@@ -104,14 +144,36 @@ impl Application {
         event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::WaitUntil(Instant::now() + self.frame_time);
 
-            // event handleing
+            let dims = display.get_framebuffer_dimensions();
+
+            let w = dims.0 as f32;
+            let h = dims.1 as f32;
+
+            let aspect_ratio = self.aspect_ratio;
+            let scaled_aspect_ratio = w / h;
+            
+            let frame_dimensions = Vec2::new(aspect_ratio, 1.0);
+            let window_dimensions = Vec2::new(w, h);
+
+            // event handling
 
             match event {
                 Event::WindowEvent {event, ..} => match event {
                     WindowEvent::CloseRequested => {
                         *flow = ControlFlow::Exit;
                         return;
-                    }
+                    },
+                    WindowEvent::CursorMoved {position, ..} => {
+                        mouse_position = Vec2::new(position.x as f32, position.y as f32) / window_dimensions * 2.0 - 1.0;
+                        mouse_position.y = -mouse_position.y;
+
+                        scaled_mouse_position = mouse_position;
+                        scaled_mouse_position.x *= scaled_aspect_ratio;
+
+                        mouse_position.x *= aspect_ratio;
+
+                        *flow = ControlFlow::Poll;
+                    },
                     _ => *flow = ControlFlow::Poll,
                 },
                 Event::NewEvents(cause) => match cause {
@@ -122,22 +184,17 @@ impl Application {
                 _ => *flow = ControlFlow::Poll,
             } 
 
+
             let delta_time = Instant::now().duration_since(last_frame);
             last_frame = Instant::now();
 
-            let dims = display.get_framebuffer_dimensions();
-
-            let w = dims.0 as f32;
-            let h = dims.1 as f32;
-
-            let aspect_ratio = w / h;
-            
-            let window_dimensions = Vec2::new(w, h)/1080.0 * 2.0;
-
             let state_data = StateData {
                 delta_time: delta_time.as_secs_f32(),
-                window_dimensions,
-                aspect_ratio
+                frame_dimensions,
+                window_dimensions: Vec2::new(w, h),
+                aspect_ratio,
+                mouse_position,
+                scaled_mouse_position,
             };
 
             // drawing
@@ -149,9 +206,12 @@ impl Application {
                 Frame {
                     frame: &mut frame,
                     simple_transform_fill: &simple_transform_fill,
+                    simple_transform_ellipse: &simple_transform_ellipse,
                     no_transform_line: &no_transform_line,
                     display: &display,
-                    window_dimensions: [dims.0 as f32, dims.1 as f32],
+                    window_dimensions: Vec2::new(w, h),
+                    aspect_ratio,
+                    scaled_aspect_ratio
                 },
                 state_data,
             );

@@ -78,8 +78,10 @@ impl<'s, 'f> Rect<'s, 'f> {
             size: self.size.as_array(),
             rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
-            scaling: self.scaling,
-            window_dimensions: self.frame.window_dimensions,
+            aspect_ratio: self.frame.aspect_ratio,
+            scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
+            scale_aspect_ratio: self.scaling,
+            window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
         };
 
