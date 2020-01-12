@@ -241,7 +241,9 @@ impl Application {
                     states.push(state);
                 },
                 Transition::Pop => {
-                    if states.pop().is_none() {
+                    states.pop();
+
+                    if states.len() == 0 {
                         *flow = ControlFlow::Exit;
                     }
                 },
