@@ -143,6 +143,15 @@ impl Application {
         let mut mouse_position = Vec2::new(0.0, 0.0);
         let mut scaled_mouse_position = Vec2::new(0.0, 0.0);
 
+        let window_dimensions_multiplier = {
+            let buffer_dimensions = display.get_framebuffer_dimensions();
+            let buffer_dimensions = Vec2::new(buffer_dimensions.0 as f32, buffer_dimensions.1 as f32);
+
+            let window_dimensions = Vec2::new(self.window_size.x as f32, self.window_size.y as f32);
+
+            buffer_dimensions / window_dimensions
+        };
+
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
@@ -182,7 +191,7 @@ impl Application {
                         return;
                     },
                     WindowEvent::CursorMoved {position, ..} => {
-                        mouse_position = Vec2::new(position.x as f32, position.y as f32) / window_dimensions * 2.0 - 1.0;
+                        mouse_position = Vec2::new(position.x as f32, position.y as f32) * window_dimensions_multiplier / window_dimensions * 2.0 - 1.0;
                         mouse_position.y = -mouse_position.y;
 
                         scaled_mouse_position = mouse_position;
