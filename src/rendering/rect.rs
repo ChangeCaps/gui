@@ -18,13 +18,13 @@ pub struct Rect<'s, 'f> {
     size: Vec2<f32>,
     rotation: f32,
     color: [f32; 4],
-    frame: &'s Frame<'f>,
+    frame: &'s mut Frame<'f>,
     anchor: Anchor,
     scaling: bool,
 }
 
 impl<'s, 'f> Rect<'s, 'f> {
-    pub fn new(frame: &'s Frame<'f>) -> Self {
+    pub fn new(frame: &'s mut Frame<'f>) -> Self {
         Self {
             position: Vec2::new(0.0, 0.0),
             size: Vec2::new(0.2, 0.2),

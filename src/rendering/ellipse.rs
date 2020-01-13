@@ -17,13 +17,13 @@ pub struct Ellipse<'s, 'f> {
     position: Vec2<f32>,
     size: Vec2<f32>,
     color: [f32; 4],
-    frame: &'s Frame<'f>,
+    frame: &'s mut Frame<'f>,
     anchor: Anchor,
     scaling: bool,
 }
 
 impl<'s, 'f> Ellipse<'s, 'f> {
-    pub fn new(frame: &'s Frame<'f>) -> Self {
+    pub fn new(frame: &'s mut Frame<'f>) -> Self {
         Self {
             position: Vec2::new(0.0, 0.0),
             size: Vec2::new(0.2, 0.2),
