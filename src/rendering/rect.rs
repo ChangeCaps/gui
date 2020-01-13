@@ -36,36 +36,6 @@ impl<'s, 'f> Rect<'s, 'f> {
         }
     }
 
-    pub fn position(mut self, position: Vec2<f32>) -> Self {
-        self.position = position;
-        self
-    }
-
-    pub fn size(mut self, size: Vec2<f32>) -> Self {
-        self.size = size;
-        self
-    }
-
-    pub fn rotation(mut self, rotation: f32) -> Self {
-        self.rotation = rotation;
-        self
-    }
-
-    pub fn color(mut self, color: [f32; 4]) -> Self {
-        self.color = color;
-        self
-    }
-
-    pub fn anchor(mut self, anchor: Anchor) -> Self {
-        self.anchor = anchor;
-        self
-    }
-
-    pub fn scaling(mut self) -> Self {
-        self.scaling = true;
-        self
-    }
-
     pub fn draw(self) {
         let vertex_buffer = glium::VertexBuffer::new(self.frame.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
@@ -99,3 +69,10 @@ impl<'s, 'f> Rect<'s, 'f> {
         ).expect("failed to draw rect");
     }
 }
+
+position!(Rect);
+size!(Rect);
+rotation!(Rect);
+color!(Rect);
+anchor!(Rect);
+scaling!(Rect);
