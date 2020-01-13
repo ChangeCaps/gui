@@ -1,7 +1,7 @@
 use super::math::*;
 
 pub struct Image {
-    pub(crate) texture: glium::texture::CompressedSrgbTexture2d,
+    pub(crate) index: usize,
     pub(crate) dimensions: Vec2<f32>,
 }
 

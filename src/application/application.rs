@@ -1,8 +1,7 @@
 use super::super::*;
 use math::*;
 use glium;
-use glium::{
-    glutin::{
+use glium::{ glutin::{
         event_loop::{
             EventLoop,
             ControlFlow,
@@ -64,14 +63,14 @@ impl Application {
         self
     }
 
-    pub fn run(self, start: fn(&super::super::Loader) -> Box<dyn State>) {
+    pub fn run(self, start: fn(&mut super::super::Loader) -> Box<dyn State>) {
         //
         // initialization
         //
 
         #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION Initializing OPEN_GL");
-
+        println!("GUI::INITIALIZATION Initializing OPEN_GL"); 
+        
         let event_loop = EventLoop::new();
 
         let wb = WindowBuilder::new()
@@ -147,11 +146,14 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
-        let loader = super::super::Loader {
+        let mut images = Vec::new();
+
+        let mut loader = super::super::Loader {
             display: &display,
+            images: &mut images,
         };
 
-        let mut states = vec![start(&loader)];
+        let mut states = vec![start(&mut loader)];
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
@@ -234,7 +236,8 @@ impl Application {
                     display: &display,
                     window_dimensions: Vec2::new(w, h),
                     aspect_ratio,
-                    scaled_aspect_ratio
+                    scaled_aspect_ratio,
+                    images: &images
                 },
                 state_data,
             );

@@ -6,6 +6,7 @@ use glium::{
 use super::super::*;
 use math::*;
 use rendering::*;
+use glium::texture::CompressedSrgbTexture2d;
 
 pub struct Frame<'f> {
     pub(crate) frame: &'f mut glium::Frame,
@@ -17,6 +18,7 @@ pub struct Frame<'f> {
     pub(crate) window_dimensions: Vec2<f32>,
     pub(crate) aspect_ratio: f32,
     pub(crate) scaled_aspect_ratio: f32,
+    pub(crate) images: &'f Vec<CompressedSrgbTexture2d>,
 }
 
 impl<'f> Frame<'f> {

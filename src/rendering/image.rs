@@ -69,7 +69,7 @@ impl<'s, 'f> Image<'s, 'f> {
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
-            tex: &self.image.texture,
+            tex: &self.frame.images[self.image.index],
         };
 
         let draw_params = glium::DrawParameters {

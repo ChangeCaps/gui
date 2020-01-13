@@ -1,13 +1,15 @@
 use super::Image;
 use super::math::*;
 use std::io::Read;
+use glium::texture::CompressedSrgbTexture2d;
 
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
+    pub(crate) images: &'s mut Vec<CompressedSrgbTexture2d>,
 }
 
 impl<'s> Loader<'s> {
-    pub fn load_image(&self, path: &'static str, format: image::ImageFormat) -> Image {
+    pub fn load_image(&mut self, path: &'static str, format: image::ImageFormat) -> Image {
         let mut buf = Vec::new();
 
         std::fs::File::open(path)
@@ -21,11 +23,15 @@ impl<'s> Loader<'s> {
 
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 
-        let texture = glium::texture::compressed_srgb_texture2d::CompressedSrgbTexture2d::new(self.display, image)
+        let texture = CompressedSrgbTexture2d::new(self.display, image)
             .expect("GUI::IMAGE Failed to create texture buffer");
 
+        let index = self.images.len();
+
+        self.images.push(texture);
+
         Image {
-            texture,
+            index,
             dimensions: Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
         }
     }
