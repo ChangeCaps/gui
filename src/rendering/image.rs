@@ -19,13 +19,13 @@ pub struct Image<'s, 'f> {
     size: Vec2<f32>,
     rotation: f32,
     color: [f32; 4],
-    frame: &'s mut Frame<'f>,
+    frame: &'s Frame<'f>,
     anchor: Anchor,
     scaling: bool,
 }
 
 impl<'s, 'f> Image<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>, image: &'s super::super::Image) -> Self {
+    pub fn new(frame: &'s Frame<'f>, image: &'s super::super::Image) -> Self {
         let image_dimensions = image.dimensions();
         let dimension_ratio = image_dimensions.x/image_dimensions.y;
 

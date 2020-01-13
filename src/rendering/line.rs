@@ -14,11 +14,11 @@ pub struct Line<'s, 'f> {
     color: [f32; 4],
     anchor: Anchor,
     scaling: bool,
-    frame: &'s mut Frame<'f>,
+    frame: &'s Frame<'f>,
 }
 
 impl<'s, 'f> Line<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>) -> Self {
+    pub fn new(frame: &'s Frame<'f>) -> Self {
         Self {
             p0: Vec2::new(0.2, 0.2),
             p1: Vec2::new(-0.2, -0.2),

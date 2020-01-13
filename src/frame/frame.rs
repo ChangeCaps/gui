@@ -22,19 +22,19 @@ pub struct Frame<'f> {
 }
 
 impl<'f> Frame<'f> {
-    pub fn rect<'s>(&'s mut self) -> Rect<'s, 'f> {
+    pub fn rect<'s>(&'s self) -> Rect<'s, 'f> {
         Rect::new(self)
     }
 
-    pub fn line<'s>(&'s mut self) -> Line<'s, 'f> {
+    pub fn line<'s>(&'s self) -> Line<'s, 'f> {
         Line::new(self)
     }
 
-    pub fn ellipse<'s>(&'s mut self) -> Ellipse<'s, 'f> {
+    pub fn ellipse<'s>(&'s self) -> Ellipse<'s, 'f> {
         Ellipse::new(self)
     }
 
-    pub fn image<'s>(&'s mut self, image: &'s super::super::Image) -> rendering::Image<'s, 'f> {
+    pub fn image<'s>(&'s self, image: &'s super::super::Image) -> rendering::Image<'s, 'f> {
         rendering::Image::new(self, image)
     }
 
