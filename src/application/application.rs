@@ -131,6 +131,16 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::INITIALIZATION Texture loaded\n");   
 
+        let text = Program::from_source(
+            &display, 
+            include_str!("../shaders/vertex/texture.glsl"), 
+            include_str!("../shaders/fragment/text.glsl"), 
+            None
+        ).expect("GUI::INITIALIZATION Failed to load Text shader");
+        
+        #[cfg(debug_assertions)]
+        println!("GUI::INITIALIZATION Text loaded\n");   
+
 
         //
         // main loop
@@ -156,10 +166,12 @@ impl Application {
         println!("GUI::APPLICATION Running start function");
 
         let mut images = Vec::new();
+        let mut fonts = Vec::new();
 
         let mut loader = super::super::Loader {
             display: &display,
             images: &mut images,
+            fonts: &mut fonts,
         };
 
         let mut states = vec![start(&mut loader)];
@@ -243,10 +255,12 @@ impl Application {
                     no_transform_line: &no_transform_line,
                     texture: &texture,
                     display: &display,
+                    text: &text,
                     window_dimensions: Vec2::new(w, h),
                     aspect_ratio,
                     scaled_aspect_ratio,
-                    images: &images
+                    images: &images,
+                    fonts: &fonts
                 },
                 state_data,
             );

@@ -3,13 +3,15 @@ mod anchor;
 mod line;
 mod ellipse;
 mod image;
-pub mod traits;
+mod text;
+mod traits;
 
 pub use rect::*;
 pub use anchor::*;
 pub use line::*;
 pub use ellipse::*;
 pub use self::image::*;
+pub use text::*;
 
 #[derive(Clone, Copy, Debug)]
 struct Vertex {

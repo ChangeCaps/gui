@@ -1,4 +1,6 @@
 use super::Image;
+use super::Font;
+use super::FontTexture;
 use super::math::*;
 use std::io::Read;
 use glium::texture::CompressedSrgbTexture2d;
@@ -6,9 +8,25 @@ use glium::texture::CompressedSrgbTexture2d;
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
     pub(crate) images: &'s mut Vec<CompressedSrgbTexture2d>,
+    pub(crate) fonts: &'s mut Vec<FontTexture>,
 }
 
 impl<'s> Loader<'s> {
+    pub fn load_font(&mut self, path: &'static str, font_size: u32) -> Font {
+        let file = std::fs::File::open(path)
+            .expect(format!("GUI::TEXT Failed to open font located at path: {}", path).as_str());
+
+        let font_texture = FontTexture::new(self.display, file, font_size, FontTexture::ascii_character_list())
+            .expect(format!("GUI::TEXT Failed to load font located at path: {}", path).as_str());
+
+        let index = self.fonts.len();
+        self.fonts.push(font_texture);
+
+        Font {
+            index,
+        }
+    }
+
     pub fn load_image(&mut self, path: &'static str, format: image::ImageFormat) -> Image {
         let mut buf = Vec::new();
 

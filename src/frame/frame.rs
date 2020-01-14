@@ -14,11 +14,13 @@ pub struct Frame<'f> {
     pub(crate) simple_transform_ellipse: &'f Program,
     pub(crate) no_transform_line: &'f Program,
     pub(crate) texture: &'f Program,
+    pub(crate) text: &'f Program,
     pub(crate) display: &'f Display,
     pub(crate) window_dimensions: Vec2<f32>,
     pub(crate) aspect_ratio: f32,
     pub(crate) scaled_aspect_ratio: f32,
     pub(crate) images: &'f Vec<CompressedSrgbTexture2d>,
+    pub(crate) fonts: &'f Vec<FontTexture>,
 }
 
 impl<'f> Frame<'f> {
@@ -36,6 +38,10 @@ impl<'f> Frame<'f> {
 
     pub fn image<'s>(&'s mut self, image: &'s super::super::Image) -> rendering::Image<'s, 'f> {
         rendering::Image::new(self, image)
+    }
+
+    pub fn text<'s>(&'s mut self, font: &'s super::super::Font) -> rendering::Text<'s, 'f> {
+        rendering::Text::new(self, font)
     }
 
     pub fn clear(&mut self) {
