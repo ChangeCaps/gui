@@ -98,7 +98,7 @@ fn build_font_image<I>(font: rusttype::Font, characters_list: I, font_size: u32)
     use std::iter;
 
     // a margin around each character to prevent artifacts
-    const MARGIN: u32 = 2;
+    const MARGIN: u32 = 10;
 
     // glyph size for characters not presented in font.
     let invalid_character_width = font_size / 2;

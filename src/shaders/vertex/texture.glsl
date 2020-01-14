@@ -8,6 +8,7 @@ uniform float scaled_aspect_ratio;
 uniform bool scale_aspect_ratio;
 uniform vec2 window_dimensions;
 uniform vec2 anchor;
+uniform vec2 pivot;
 
 in vec2 position;
 in vec2 texture_coords;
@@ -15,7 +16,7 @@ in vec2 texture_coords;
 out vec2 v_tex_coords;
 
 void main() {
-    vec2 vertex_position = position * size * rotation + pos;
+    vec2 vertex_position = (position - pivot) * size * rotation + pos;
 
     if (scale_aspect_ratio) {
         vertex_position.x /= scaled_aspect_ratio;
@@ -25,6 +26,6 @@ void main() {
 
     vertex_position += anchor;
 
-    gl_Position = vec4(position, 0.0, 1.0);
+    gl_Position = vec4(vertex_position, 0.0, 1.0);
     v_tex_coords = texture_coords;
 }

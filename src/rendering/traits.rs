@@ -20,5 +20,7 @@ create_impl!(rotation, f32);
 create_impl!(scaling, bool);
 create_impl!(color, [f32; 4]);
 create_impl!(anchor, Anchor);
+create_impl!(pivot, Anchor);
 create_impl!(smooth, bool);
 create_impl!(width, f32);
+create_impl!(scale, f32);

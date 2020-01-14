@@ -22,7 +22,7 @@ use std::time::{Instant, Duration};
 pub struct Application {
     pub title: &'static str,
     pub frame_time: Duration,
-    pub aspect_ratio: f32,
+    pub aspect_ratio: Option<f32>,
     pub resizable: bool,
     pub window_size: Vec2<u32>,
 }
@@ -32,7 +32,7 @@ impl Application {
         Application {
             title: "gui application",
             frame_time: Duration::from_secs_f32(1.0/60.0),
-            aspect_ratio: 4.0/3.0,
+            aspect_ratio: None,
             resizable: true,
             window_size: Vec2::new(800, 600),
         }
@@ -49,7 +49,7 @@ impl Application {
     }
 
     pub fn with_aspect_ratio(mut self, aspect_ratio: f32) -> Application {
-        self.aspect_ratio = aspect_ratio;
+        self.aspect_ratio = Some(aspect_ratio);
         self
     }
 
@@ -162,6 +162,8 @@ impl Application {
             buffer_dimensions / window_dimensions
         };
 
+        let aspect_ratio = self.aspect_ratio.unwrap_or(self.window_size.x as f32/self.window_size.y as f32);
+
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
@@ -186,8 +188,7 @@ impl Application {
 
             let w = dims.0 as f32;
             let h = dims.1 as f32;
-
-            let aspect_ratio = self.aspect_ratio;
+            
             let scaled_aspect_ratio = w / h;
             
             let frame_dimensions = Vec2::new(aspect_ratio, 1.0);

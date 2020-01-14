@@ -7,10 +7,12 @@ use glium::Surface;
 pub struct Text<'s, 'f> {
     font: &'s super::super::Font,
     position: Vec2<f32>,
+    scale: f32,
     rotation: f32,
     color: [f32; 4],
     frame: &'s mut Frame<'f>,
     anchor: Anchor,
+    pivot: Anchor,
     scaling: bool,
     text: String,
 }
@@ -20,9 +22,11 @@ impl<'s, 'f> Text<'s, 'f> {
         Self {
             font,
             position: Vec2::new(0.0, 0.0),
+            scale: 0.2,
             rotation: 0.0,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
+            pivot: Anchor::Middle,
             scaling: false,
             frame,
             text: String::new(),
@@ -46,6 +50,8 @@ impl<'s, 'f> Text<'s, 'f> {
 
         let mut total_text_width = 0.0;
 
+        let mut height = 0.0;
+
         for character in self.text.chars() {
             let infos = match self.frame.fonts[self.font.index].character_infos.get(&character) {
                 Some(infos) => infos,
@@ -65,12 +71,14 @@ impl<'s, 'f> Text<'s, 'f> {
 
             //
             total_text_width += infos.left_padding;
-
+            
             // calculating coords
             let left_coord = total_text_width;
             let right_coord = left_coord + infos.size.0;
             let top_coord = infos.height_over_line;
             let bottom_coord = infos.height_over_line - infos.size.1;
+            
+            total_text_width += infos.size.0 + infos.right_padding;
 
             // top-left vertex
             vertex_buffer_data.push(TextureVertex {
@@ -98,6 +106,10 @@ impl<'s, 'f> Text<'s, 'f> {
                     infos.tex_coords.1 + infos.tex_size.1
                 ],
             });
+
+            if infos.height_over_line > height {
+                height = infos.height_over_line;
+            }
         }
 
         let vertex_buffer = glium::VertexBuffer::new(self.frame.display, &vertex_buffer_data)
@@ -106,23 +118,16 @@ impl<'s, 'f> Text<'s, 'f> {
         let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
             .expect("failed to create index buffer");   
 
-        let mut height = 0.0;
-
-        for (_, info) in &self.frame.fonts[self.font.index].character_infos {
-            if info.height_over_line > height {
-                height = info.height_over_line;
-            }
-        }
-
-        let mut position = self.position;
-        position.x -= total_text_width;
-        position.y -= height;
+        let mut pivot = self.pivot.as_vec()/2.0 + 0.5;
+        pivot.x *= total_text_width;
+        pivot.y *= height;
 
         let uniforms = uniform!{
-            pos: position.as_array(),
-            size: [1.0f32, 1.0f32],
+            pos: self.position.as_array(),
+            size: [self.scale/height, self.scale/height],
             rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
+            pivot: pivot.as_array(),
             aspect_ratio: self.frame.aspect_ratio,
             scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
@@ -150,4 +155,6 @@ position!(Text);
 rotation!(Text);
 color!(Text);
 anchor!(Text);
+pivot!(Text);
 scaling!(Text);
+scale!(Text);

@@ -10,7 +10,7 @@ out vec4 color;
 void main() {
     vec4 c = vec4(fill_color.rgb, fill_color.a * texture(tex, v_tex_coords));
 
-    if (c.a <= 0.012) {
+    if (c.a <= 0.1) {
         discard;
     } else {
         color = c;

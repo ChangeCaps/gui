@@ -1,19 +1,31 @@
 extern crate gui;
 
 use gui::*;
+use math::*;
 
 struct ImageExample {
     font: Font,
 }
 
 impl State for ImageExample {
-    fn draw(&mut self, mut frame: Frame, _state_data: StateData) -> Transition {
+    fn draw(&mut self, mut frame: Frame, _data: StateData) -> Transition {
+        frame.clear();
+
         frame.rect()
-            .color(color::rgb(0.0, 1.0, 0.0))
+            .size(Vec2::new(0.7, 0.2))
+            .color(color::rgb(0.7, 0.3, 0.2))
+            .anchor(Anchor::MiddleRight)
+            .pivot(Anchor::MiddleRight)
+            .scaling(true)
             .draw();
 
         frame.text(&self.font)
-            .text("Ihe")
+            .position(Vec2::new(-0.1, 0.0))
+            .scale(0.05)
+            .anchor(Anchor::MiddleRight)
+            .pivot(Anchor::MiddleRight)
+            .scaling(true)
+            .text("Hello World")
             .draw();
 
         Transition::None

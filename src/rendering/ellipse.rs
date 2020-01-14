@@ -5,10 +5,10 @@ use glium;
 use glium::Surface;
 
 static RECT_VERTS: &[Vertex] = &[
-    Vertex { position: [0.5, 0.5] },
-    Vertex { position: [0.5, -0.5] },
-    Vertex { position: [-0.5, 0.5] },
-    Vertex { position: [-0.5, -0.5] },
+    Vertex { position: [1.0, 1.0] },
+    Vertex { position: [1.0, 0.0] },
+    Vertex { position: [0.0, 1.0] },
+    Vertex { position: [0.0, 0.0] },
 ];
 
 static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
@@ -19,6 +19,7 @@ pub struct Ellipse<'s, 'f> {
     color: [f32; 4],
     frame: &'s mut Frame<'f>,
     anchor: Anchor,
+    pivot: Anchor,
     scaling: bool,
 }
 
@@ -29,6 +30,7 @@ impl<'s, 'f> Ellipse<'s, 'f> {
             size: Vec2::new(0.2, 0.2),
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
+            pivot: Anchor::Middle,
             scaling: false,
             frame
         }
@@ -46,6 +48,7 @@ impl<'s, 'f> Ellipse<'s, 'f> {
             size: self.size.as_array(),
             rotation: Mat2::<f32>::from_degrees(0.0).as_array(),
             anchor: self.anchor.as_vec().as_array(),
+            pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
             aspect_ratio: self.frame.aspect_ratio,
             scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
@@ -72,4 +75,5 @@ position!(Ellipse);
 size!(Ellipse);
 color!(Ellipse);
 anchor!(Ellipse);
+pivot!(Ellipse);
 scaling!(Ellipse);
