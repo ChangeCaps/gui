@@ -8,7 +8,7 @@ struct ImageExample {
 }
 
 impl State for ImageExample {
-    fn draw(&mut self, mut frame: Frame, _data: StateData) -> Transition {
+    fn draw(&mut self, mut frame: Frame, data: StateData) -> Transition {
         frame.clear();
 
         frame.rect()
@@ -25,6 +25,13 @@ impl State for ImageExample {
             .anchor(Anchor::MiddleRight)
             .pivot(Anchor::MiddleRight)
             .scaling(true)
+            .color(
+                if data.key_held(KeyCode::A) {
+                    color::rgb(1.0, 1.0, 1.0)
+                } else {
+                    color::rgb(0.0, 0.0, 1.0)
+                }
+            )
             .text("Hello World")
             .draw();
 

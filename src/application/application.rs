@@ -1,7 +1,8 @@
 use super::super::*;
 use math::*;
 use glium;
-use glium::{ glutin::{
+use glium::{ 
+    glutin::{
         event_loop::{
             EventLoop,
             ControlFlow,
@@ -10,14 +11,17 @@ use glium::{ glutin::{
             Event,
             StartCause,
             WindowEvent,
+            MouseButton,
+            ElementState,
         },
         window::WindowBuilder,
-        ContextBuilder,      
+        ContextBuilder,
     },
     Display,
     Program,
 };
 use std::time::{Instant, Duration};
+use std::collections::HashSet;
 
 pub struct Application {
     pub title: &'static str,
@@ -164,6 +168,11 @@ impl Application {
 
         let aspect_ratio = self.aspect_ratio.unwrap_or(self.window_size.x as f32/self.window_size.y as f32);
 
+        // inputs
+        
+        let mut keys_held = HashSet::new();
+        let mut mouse_buttons_held = HashSet::new();
+
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
@@ -196,6 +205,12 @@ impl Application {
             let window_dimensions = Vec2::new(w, h);
 
             // event handling
+            
+            let mut keys_pressed = HashSet::new();
+            let mut keys_released = HashSet::new();
+
+            let mut mouse_buttons_pressed = HashSet::new();
+            let mut mouse_buttons_released = HashSet::new();
 
             match event {
                 Event::WindowEvent {event, ..} => match event {
@@ -211,6 +226,34 @@ impl Application {
                         scaled_mouse_position.x *= scaled_aspect_ratio;
 
                         mouse_position.x *= aspect_ratio;
+                    },
+                    WindowEvent::KeyboardInput {input, ..} => {
+                        match input.state {
+                            ElementState::Pressed => {
+                                input.virtual_keycode.map(|key| { 
+                                    keys_held.insert(key);
+                                    keys_pressed.insert(key);
+                                });
+                            },
+                            ElementState::Released => { 
+                                input.virtual_keycode.map(|key| { 
+                                    keys_held.remove(&key);
+                                    keys_released.insert(key);
+                                });
+                            }
+                        }
+                    },
+                    WindowEvent::MouseInput {button, state, ..} => {
+                        match state {
+                            ElementState::Pressed => {
+                                mouse_buttons_held.insert(button);
+                                mouse_buttons_pressed.insert(button);
+                            },
+                            ElementState::Released => { 
+                                mouse_buttons_held.remove(&button);
+                                mouse_buttons_released.insert(button);
+                            },
+                        }
                     },
                     _ => *flow = ControlFlow::Poll,
                 },
@@ -234,6 +277,12 @@ impl Application {
                 aspect_ratio,
                 mouse_position,
                 scaled_mouse_position,
+                keys_pressed: &keys_pressed,
+                keys_held: &keys_held,
+                keys_released: &keys_released,
+                mouse_buttons_pressed: &mouse_buttons_pressed,
+                mouse_buttons_held: &mouse_buttons_held,
+                mouse_buttons_released: &mouse_buttons_released,
             };
 
             // drawing

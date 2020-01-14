@@ -11,6 +11,8 @@ impl State for ImageExample {
         frame.image(&self.image)
             .scale(0.5)
             .scaling(true)
+            .anchor(Anchor::MiddleLeft)
+            .pivot(Anchor::MiddleLeft)
             .draw();
 
         Transition::None
