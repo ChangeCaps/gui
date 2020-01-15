@@ -11,7 +11,6 @@ use glium::{
             Event,
             StartCause,
             WindowEvent,
-            MouseButton,
             ElementState,
         },
         window::WindowBuilder,
@@ -67,7 +66,9 @@ impl Application {
         self
     }
 
-    pub fn run(self, start: fn(&mut super::super::Loader) -> Box<dyn State>) {
+    pub fn run<F>(self, mut start: F) 
+        where F: FnMut(&mut super::super::Loader) -> Box<dyn State>
+    {
         //
         // initialization
         //
@@ -265,6 +266,7 @@ impl Application {
                 _ => return,
             } 
 
+            // state data
 
             let delta_time = Instant::now().duration_since(last_frame);
             last_frame = Instant::now();
