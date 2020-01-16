@@ -174,6 +174,13 @@ impl Application {
         
         let mut keys_held = HashSet::new();
         let mut mouse_buttons_held = HashSet::new();
+            
+        let mut keys_pressed = HashSet::new();
+        let mut keys_released = HashSet::new();
+
+        let mut mouse_buttons_pressed = HashSet::new();
+        let mut mouse_buttons_released = HashSet::new();
+
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
@@ -201,6 +208,12 @@ impl Application {
             // update next_frame_time
             if next_frame_time <= Instant::now() {
                 next_frame_time = Instant::now() + self.frame_time;
+
+                keys_pressed = HashSet::new();
+                mouse_buttons_pressed = HashSet::new();
+
+                keys_released = HashSet::new();
+                mouse_buttons_released = HashSet::new();
             }
 
             // set ControlFlow
@@ -218,14 +231,7 @@ impl Application {
             let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio, 1.0);
             let window_dimensions = Vec2::new(w, h);
 
-            // event handling
-            
-            let mut keys_pressed = HashSet::new();
-            let mut keys_released = HashSet::new();
-
-            let mut mouse_buttons_pressed = HashSet::new();
-            let mut mouse_buttons_released = HashSet::new();
-
+            // event handling 
             match event {
                 Event::WindowEvent {event, ..} => match event {
                     WindowEvent::CloseRequested => {
