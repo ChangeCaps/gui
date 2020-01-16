@@ -17,4 +17,8 @@ impl TextInput {
     pub fn stop(&mut self) {
         self.text.borrow_mut().1 = false;
     }
+
+    pub fn reading(&mut self) -> bool {
+        self.text.borrow().1
+    }
 }
