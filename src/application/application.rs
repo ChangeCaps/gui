@@ -12,6 +12,7 @@ use glium::{
             StartCause,
             WindowEvent,
             ElementState,
+            DeviceEvent,
         },
         window::WindowBuilder,
         ContextBuilder,
@@ -179,21 +180,33 @@ impl Application {
 
         let mut images = Vec::new();
         let mut fonts = Vec::new();
+        let mut text_inputs = Vec::new();
 
         let mut loader = super::super::Loader {
             display: &display,
             images: &mut images,
             fonts: &mut fonts,
+            text_inputs: &mut text_inputs,
         };
 
         let mut states = vec![start(&mut loader)];
+
+        // used to ensure that we don't go above the desired frame rate
+        let mut next_frame_time = Instant::now() + self.frame_time;
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
 
         event_loop.run(move |event, _, flow| {
-            *flow = ControlFlow::WaitUntil(Instant::now() + self.frame_time);
+            // update next_frame_time
+            if next_frame_time <= Instant::now() {
+                next_frame_time = Instant::now() + self.frame_time;
+            }
 
+            // set ControlFlow
+            *flow = ControlFlow::WaitUntil(next_frame_time);
+
+            // get window dimensions
             let dims = display.get_framebuffer_dimensions();
 
             let w = dims.0 as f32;
@@ -227,6 +240,8 @@ impl Application {
                         scaled_mouse_position.x *= scaled_aspect_ratio;
 
                         mouse_position.x *= aspect_ratio;
+
+                        return;
                     },
                     WindowEvent::KeyboardInput {input, ..} => {
                         match input.state {
@@ -243,6 +258,8 @@ impl Application {
                                 });
                             }
                         }
+                        
+                        return;
                     },
                     WindowEvent::MouseInput {button, state, ..} => {
                         match state {
@@ -255,9 +272,34 @@ impl Application {
                                 mouse_buttons_released.insert(button);
                             },
                         }
+
+                        return;
                     },
-                    _ => *flow = ControlFlow::Poll,
-                },
+                    WindowEvent::ReceivedCharacter(c) => { 
+                        text_inputs.iter_mut().for_each(|input| {
+                            match c as u8 {
+                                13 => {
+                                    
+                                },
+                                08 => {
+                                    let mut s = input.borrow_mut();
+
+                                    s.0.pop();
+                                },
+                                _ => {
+                                    let mut s = input.borrow_mut();
+     
+                                    if true {
+                                        s.0.push(c);
+                                    }
+                                }
+                            }
+                        });                        
+
+                        return;
+                    }
+                    _ => return,
+                }, 
                 Event::NewEvents(cause) => match cause {
                     StartCause::ResumeTimeReached { .. } => (),
                     StartCause::Init => (),

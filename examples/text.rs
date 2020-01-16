@@ -3,11 +3,12 @@ extern crate gui;
 use gui::*;
 use math::*;
 
-struct ImageExample {
+struct TextExample {
     font: Font,
+    text_input: TextInput,
 }
 
-impl State for ImageExample {
+impl State for TextExample {
     fn draw(&mut self, mut frame: Frame, data: StateData) -> Transition {
         frame.clear();
 
@@ -32,7 +33,7 @@ impl State for ImageExample {
                     color::rgb(0.0, 0.0, 1.0)
                 }
             )
-            .text("Hello World")
+            .text(self.text_input.get_text())
             .draw();
 
         Transition::None
@@ -41,11 +42,15 @@ impl State for ImageExample {
 
 fn main() {
     Application::new()
-        .with_title("Image Example")
+        .with_title("Text Example")
         .with_window_size(1000, 800)
         .run(|loader| {
-            Box::new(ImageExample {
-                font: loader.load_font("assets/test_font.ttf", 1000)
+            let mut text_input = loader.text_input();
+            text_input.start();
+
+            Box::new(TextExample {
+                font: loader.load_font("assets/test_font.ttf", 1000),
+                text_input,
             })
         });
 }
