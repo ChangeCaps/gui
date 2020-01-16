@@ -328,7 +328,6 @@ impl Application {
                 mouse_buttons_held: &mouse_buttons_held,
                 mouse_buttons_released: &mouse_buttons_released,
             };
-            keys_pressed = HashSet::new();
 
             let mut frame = display.draw();
 
