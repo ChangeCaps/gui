@@ -208,12 +208,6 @@ impl Application {
             // update next_frame_time
             if next_frame_time <= Instant::now() {
                 next_frame_time = Instant::now() + self.frame_time;
-
-                keys_pressed = HashSet::new();
-                mouse_buttons_pressed = HashSet::new();
-
-                keys_released = HashSet::new();
-                mouse_buttons_released = HashSet::new();
             }
 
             // set ControlFlow
@@ -334,8 +328,7 @@ impl Application {
                 mouse_buttons_held: &mouse_buttons_held,
                 mouse_buttons_released: &mouse_buttons_released,
             };
-
-            // drawing
+            keys_pressed = HashSet::new();
 
             let mut frame = display.draw();
 
@@ -364,6 +357,12 @@ impl Application {
                 },
                 state_data,
             );
+
+            keys_pressed = HashSet::new();
+            mouse_buttons_pressed = HashSet::new();
+
+            keys_released = HashSet::new();
+            mouse_buttons_released = HashSet::new();
 
             frame.finish()
                 .expect("GUI::APPLICATION Failed to finish frame");
