@@ -5,8 +5,8 @@ use math::*;
 
 struct ShapeExample;
 
-impl State for ShapeExample {
-    fn draw(&mut self, mut frame: Frame, state_data: StateData) -> Transition {
+impl SimpleState for ShapeExample {
+    fn draw(&mut self, frame: &mut Frame, state_data: &StateData) {
         frame.clear();
 
         {
@@ -49,8 +49,6 @@ impl State for ShapeExample {
             .smooth(true)
             .anchor(Anchor::MiddleLeft)
             .draw();
-
-        Transition::None
     }
 }
 

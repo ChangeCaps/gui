@@ -6,8 +6,8 @@ struct PivotExample {
 
 }
 
-impl State for PivotExample {
-    fn draw(&mut self, mut frame: Frame, _state_data: StateData) -> Transition {
+impl SimpleState for PivotExample {
+    fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
         frame.clear();
 
         frame.rect()
@@ -24,8 +24,6 @@ impl State for PivotExample {
             .pivot(Anchor::TopRight)
             .rotation(45.0)
             .draw();
-
-        Transition::None
     }
 }
 

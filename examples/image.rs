@@ -6,16 +6,14 @@ struct ImageExample {
     image: Image,
 }
 
-impl State for ImageExample {
-    fn draw(&mut self, mut frame: Frame, _state_data: StateData) -> Transition {
+impl SimpleState for ImageExample {
+    fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
         frame.image(&self.image)
             .scale(0.5)
             .scaling(true)
             .anchor(Anchor::MiddleLeft)
             .pivot(Anchor::MiddleLeft)
             .draw();
-
-        Transition::None
     }
 }
 

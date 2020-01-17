@@ -339,8 +339,9 @@ impl Application {
             }
 
             let index = states.len() - 1;
-            let trans = states[index].draw(
-                Frame {
+        
+            states.iter_mut().for_each(|state| state.draw(
+                &mut Frame {
                     frame: &mut frame,
                     simple_transform_fill: &simple_transform_fill,
                     simple_transform_ellipse: &simple_transform_ellipse,
@@ -354,8 +355,12 @@ impl Application {
                     images: &images,
                     fonts: &fonts
                 },
-                state_data,
-            );
+                &state_data,
+            ));
+
+            let trans = states[index].update(&state_data);
+
+            states.iter_mut().for_each(|state| state.shadow_update(&state_data));
 
             keys_pressed = HashSet::new();
             mouse_buttons_pressed = HashSet::new();

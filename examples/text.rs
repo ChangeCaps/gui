@@ -8,8 +8,8 @@ struct TextExample {
     text_input: TextInput,
 }
 
-impl State for TextExample {
-    fn draw(&mut self, mut frame: Frame, data: StateData) -> Transition {
+impl SimpleState for TextExample {
+    fn draw(&mut self, frame: &mut Frame, data: &StateData) {
         frame.clear();
 
         frame.rect()
@@ -35,8 +35,6 @@ impl State for TextExample {
             )
             .text(self.text_input.get_text())
             .draw();
-
-        Transition::None
     }
 }
 
