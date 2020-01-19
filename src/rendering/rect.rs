@@ -22,7 +22,7 @@ pub struct Rect<'s, 'f> {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    debth: f32,
+    depth: f32,
 }
 
 impl<'s, 'f> Rect<'s, 'f> {
@@ -35,7 +35,7 @@ impl<'s, 'f> Rect<'s, 'f> {
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
             scaling: false,
-            debth: 0.0,
+            depth: 0.0,
             frame
         }
     }
@@ -62,7 +62,7 @@ impl<'s, 'f> Rect<'s, 'f> {
             scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
-            debth: self.debth,
+            depth: self.depth,
             fill_color: self.color,
         };
 
@@ -88,4 +88,4 @@ color!(Rect);
 anchor!(Rect);
 pivot!(Rect);
 scaling!(Rect);
-debth!(Rect);
+depth!(Rect);

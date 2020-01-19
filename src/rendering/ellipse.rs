@@ -60,7 +60,7 @@ impl<'s, 'f> Ellipse<'s, 'f> {
             scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
-            debth: self.debth,
+            depth: self.depth,
             fill_color: self.color,
         };
 
