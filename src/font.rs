@@ -12,10 +12,6 @@ pub enum Error {
     NoGlyph(char),
 }
 
-pub struct Font {
-    pub(crate) index: usize,
-}
-
 pub struct FontTexture {
     pub(crate) texture: glium::texture::Texture2d,
     pub(crate) character_infos: HashMap<char, CharacterInfos>,

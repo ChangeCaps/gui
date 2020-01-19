@@ -14,6 +14,7 @@ pub struct Line<'s, 'f> {
     color: [f32; 4],
     anchor: Anchor,
     scaling: bool,
+    debth: f32,
     frame: &'s mut Frame<'f>,
 }
 
@@ -27,6 +28,7 @@ impl<'s, 'f> Line<'s, 'f> {
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             scaling: false,
+            debth: 0.0,
             frame
         }
     }
@@ -74,6 +76,7 @@ impl<'s, 'f> Line<'s, 'f> {
             scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
+            debth: self.debth,
             fill_color: self.color,
         };
 
@@ -97,3 +100,4 @@ anchor!(Line);
 smooth!(Line);
 width!(Line);
 scaling!(Line);
+debth!(Line);

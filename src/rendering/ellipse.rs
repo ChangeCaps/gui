@@ -20,6 +20,7 @@ pub struct Ellipse<'s, 'f> {
     frame: &'s mut Frame<'f>,
     anchor: Anchor,
     pivot: Anchor,
+    debth: f32,
     scaling: bool,
 }
 
@@ -32,6 +33,7 @@ impl<'s, 'f> Ellipse<'s, 'f> {
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
             scaling: false,
+            debth: 0.0,
             frame,
         }
     }
@@ -58,6 +60,7 @@ impl<'s, 'f> Ellipse<'s, 'f> {
             scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
+            debth: self.debth,
             fill_color: self.color,
         };
 
@@ -82,3 +85,4 @@ color!(Ellipse);
 anchor!(Ellipse);
 pivot!(Ellipse);
 scaling!(Ellipse);
+debth!(Ellipse);

@@ -23,6 +23,7 @@ pub struct Image<'s, 'f> {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
+    debth: f32,
     ratio: f32,
 }
 
@@ -43,6 +44,7 @@ impl<'s, 'f> Image<'s, 'f> {
             pivot: Anchor::Middle,
             scaling: false,
             ratio: dimension_ratio,
+            debth: 0.0,
             frame
         }
     }
@@ -87,6 +89,7 @@ impl<'s, 'f> Image<'s, 'f> {
             window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
             texture_dimensions: tex_dims,
+            debth: self.debth,
             tex: image,
         };
 
@@ -112,3 +115,4 @@ color!(Image);
 anchor!(Image);
 pivot!(Image);
 scaling!(Image);
+debth!(Image);
