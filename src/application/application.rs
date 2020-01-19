@@ -21,7 +21,7 @@ use glium::{
     Surface,
 };
 use std::time::{Instant, Duration};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub struct Application {
     pub title: &'static str,
@@ -191,8 +191,8 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
-        let mut images = Vec::new();
-        let mut fonts = Vec::new();
+        let mut images = HashMap::new();
+        let mut fonts = HashMap::new();
         let mut text_inputs = Vec::new();
 
         let mut loader = super::super::Loader {

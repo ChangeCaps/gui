@@ -9,7 +9,6 @@ pub mod frame;
 pub mod color;
 pub mod math;
 pub mod rendering;
-mod img;
 mod loader;
 mod font;
 mod text_input;
@@ -22,7 +21,6 @@ pub use frame::*;
 pub use rendering::{
     Anchor,
 };
-pub use img::*;
 pub use image::ImageFormat::*;
 pub use loader::*;
 pub use font::*;

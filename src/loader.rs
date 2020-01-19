@@ -1,35 +1,32 @@
-use super::Image;
-use super::Font;
 use super::FontTexture;
 use super::TextInput;
-use super::math::*;
 use std::io::Read;
 use glium::texture::texture2d::Texture2d;
+use std::collections::HashMap;
 
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
-    pub(crate) images: &'s mut Vec<Texture2d>,
-    pub(crate) fonts: &'s mut Vec<FontTexture>,
+    pub(crate) images: &'s mut HashMap<String, Texture2d>,
+    pub(crate) fonts: &'s mut HashMap<String, FontTexture>,
     pub(crate) text_inputs: &'s mut Vec<std::rc::Rc<std::cell::RefCell<(String, bool)>>>,
 }
 
 impl<'s> Loader<'s> {
-    pub fn load_font(&mut self, path: &'static str, font_size: u32) -> Font {
+    pub fn load_font<P>(&mut self, path: P, font_size: u32) 
+        where P: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
+    {
         let file = std::fs::File::open(path)
             .expect(format!("GUI::TEXT Failed to open font located at path: {}", path).as_str());
 
         let font_texture = FontTexture::new(self.display, file, font_size, FontTexture::ascii_character_list())
             .expect(format!("GUI::TEXT Failed to load font located at path: {}", path).as_str());
 
-        let index = self.fonts.len();
-        self.fonts.push(font_texture);
-
-        Font {
-            index,
-        }
+        self.fonts.insert(path.into(), font_texture);
     }
 
-    pub fn load_image(&mut self, path: &'static str, format: image::ImageFormat) -> Image {
+    pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat)
+        where P: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
+    {
         let mut buf = Vec::new();
 
         std::fs::File::open(path)
@@ -46,14 +43,7 @@ impl<'s> Loader<'s> {
         let texture = Texture2d::new(self.display, image)
             .expect("GUI::IMAGE Failed to create texture buffer");
 
-        let index = self.images.len();
-
-        self.images.push(texture);
-
-        Image {
-            index,
-            dimensions: Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
-        }
+        self.images.insert(path.into(), texture);
     }
 
     pub fn text_input(&mut self) -> TextInput {

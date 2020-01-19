@@ -7,6 +7,7 @@ use super::super::*;
 use math::*;
 use rendering::*;
 use glium::texture::texture2d::Texture2d;
+use std::collections::HashMap;
 
 pub struct Frame<'f> {
     pub(crate) frame: &'f mut glium::framebuffer::SimpleFrameBuffer<'f>,
@@ -20,8 +21,8 @@ pub struct Frame<'f> {
     pub(crate) pixel_window_dimensions: Option<Vec2<f32>>,
     pub(crate) aspect_ratio: f32,
     pub(crate) scaled_aspect_ratio: f32,
-    pub(crate) images: &'f Vec<Texture2d>,
-    pub(crate) fonts: &'f Vec<FontTexture>,
+    pub(crate) images: &'f HashMap<String, Texture2d>,
+    pub(crate) fonts: &'f HashMap<String, FontTexture>,
 }
 
 impl<'f> Frame<'f> {
@@ -37,12 +38,16 @@ impl<'f> Frame<'f> {
         Ellipse::new(self)
     }
 
-    pub fn image<'s>(&'s mut self, image: &'s super::super::Image) -> rendering::Image<'s, 'f> {
-        rendering::Image::new(self, image)
+    pub fn image<'s, P>(&'s mut self, image: P) -> rendering::Image<'s, 'f> 
+        where P: Into<String>
+    {
+        rendering::Image::new(self, image.into())
     }
 
-    pub fn text<'s>(&'s mut self, font: &'s super::super::Font) -> rendering::Text<'s, 'f> {
-        rendering::Text::new(self, font)
+    pub fn text<'s, P>(&'s mut self, font: P) -> rendering::Text<'s, 'f> 
+        where P: Into<String>
+    {
+        rendering::Text::new(self, font.into())
     }
 
     pub fn clear(&mut self) {

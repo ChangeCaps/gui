@@ -3,13 +3,12 @@ extern crate gui;
 use gui::*;
 
 struct ImageExample {
-    image: Image,
     x: f32,
 }
 
 impl SimpleState for ImageExample {
     fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
-        frame.image(&self.image)
+        frame.image("assets/test_image.png")
             //.scale(0.5)
             .position(math::Vec2::new(self.x, 0.0))
             //.anchor(Anchor::MiddleLeft)
@@ -26,8 +25,9 @@ fn main() {
         .with_window_size(600, 400)
         .with_pixel_window_size(300, 200)
         .run(|loader| {
+            loader.load_image("assets/test_image.png", PNG);
+
             Box::new(ImageExample {
-                image: loader.load_image("assets/test_image.png", PNG),
                 x: 0.0
             })
         });

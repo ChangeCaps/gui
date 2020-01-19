@@ -14,7 +14,7 @@ static RECT_VERTS: &[TextureVertex] = &[
 static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
 
 pub struct Image<'s, 'f> {
-    image: &'s super::super::Image,
+    image: String,
     position: Vec2<f32>,
     size: Vec2<f32>,
     rotation: f32,
@@ -23,12 +23,15 @@ pub struct Image<'s, 'f> {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
+    ratio: f32,
 }
 
 impl<'s, 'f> Image<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>, image: &'s super::super::Image) -> Self {
-        let image_dimensions = image.dimensions();
-        let dimension_ratio = image_dimensions.x/image_dimensions.y;
+    pub fn new(frame: &'s mut Frame<'f>, image: String) -> Self {
+        let img = frame.images.get(&image).unwrap();
+
+        let image_dimensions = img.dimensions();
+        let dimension_ratio = image_dimensions.0 as f32/image_dimensions.1 as f32;
 
         Self {
             image,
@@ -39,21 +42,21 @@ impl<'s, 'f> Image<'s, 'f> {
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
             scaling: false,
+            ratio: dimension_ratio,
             frame
         }
     }
 
     pub fn scale(mut self, scale: f32) -> Self {
-        let image_dimensions = self.image.dimensions();
-        let dimension_ratio = image_dimensions.x/image_dimensions.y;
-
-        self.size = Vec2::new(scale * dimension_ratio, scale);
+        self.size = Vec2::new(scale * self.ratio, scale);
 
         self
     }
 
     pub fn draw(mut self) {
-        let tex_dims = self.frame.images[self.image.index].dimensions();
+        let image = self.frame.images.get(&self.image).unwrap();
+
+        let tex_dims = image.dimensions();
         let tex_dims = (tex_dims.0 as f32, tex_dims.1 as f32);
 
         self.frame.pixel_window_dimensions.map(|dims| {
@@ -84,7 +87,7 @@ impl<'s, 'f> Image<'s, 'f> {
             window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
             texture_dimensions: tex_dims,
-            tex: &self.frame.images[self.image.index],
+            tex: image,
         };
 
         let draw_params = glium::DrawParameters {

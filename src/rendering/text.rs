@@ -5,7 +5,7 @@ use glium;
 use glium::Surface;
 
 pub struct Text<'s, 'f> {
-    font: &'s super::super::Font,
+    font: String,
     position: Vec2<f32>,
     scale: f32,
     rotation: f32,
@@ -18,7 +18,7 @@ pub struct Text<'s, 'f> {
 }
 
 impl<'s, 'f> Text<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>, font: &'s super::super::Font) -> Self {
+    pub fn new(frame: &'s mut Frame<'f>, font: String) -> Self {
         Self {
             font,
             position: Vec2::new(0.0, 0.0),
@@ -47,6 +47,8 @@ impl<'s, 'f> Text<'s, 'f> {
             return;
         }
 
+        let font = self.frame.fonts.get(&self.font).unwrap();
+
         self.frame.pixel_window_dimensions.map(|dims| {
             self.position /= dims;
             self.scale /= dims.y;
@@ -61,7 +63,7 @@ impl<'s, 'f> Text<'s, 'f> {
 
         // calc verts & indecies
         for character in self.text.chars() {
-            let infos = match self.frame.fonts[self.font.index].character_infos.get(&character) {
+            let infos = match font.character_infos.get(&character) {
                 Some(infos) => infos,
                 None => continue,
             };
@@ -142,7 +144,7 @@ impl<'s, 'f> Text<'s, 'f> {
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
-            tex: glium::uniforms::Sampler(&self.frame.fonts[self.font.index].texture, Default::default())
+            tex: glium::uniforms::Sampler(&font.texture, Default::default())
         };
 
         // enable alpha blending

@@ -4,7 +4,6 @@ use gui::*;
 use math::*;
 
 struct TextExample {
-    font: Font,
     text_input: TextInput,
 }
 
@@ -20,7 +19,7 @@ impl SimpleState for TextExample {
             .scaling(true)
             .draw();
 
-        frame.text(&self.font)
+        frame.text("assets/test_font.ttf")
             .position(Vec2::new(-0.1, 0.0))
             .scale(0.05)
             .anchor(Anchor::MiddleRight)
@@ -46,8 +45,9 @@ fn main() {
             let mut text_input = loader.text_input();
             text_input.start();
 
+            loader.load_font("assets/test_font.ttf", 1000);
+
             Box::new(TextExample {
-                font: loader.load_font("assets/test_font.ttf", 1000),
                 text_input,
             })
         });
