@@ -6,7 +6,7 @@ use glium::Surface;
 
 static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
 
-pub struct Line<'s, 'f> {
+pub struct LineBuilder<'s> {
     p0: Vec2<f32>,
     p1: Vec2<f32>,
     width: f32,
@@ -15,11 +15,22 @@ pub struct Line<'s, 'f> {
     anchor: Anchor,
     scaling: bool,
     depth: f32,
-    frame: &'s mut Frame<'f>,
+    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
 }
 
-impl<'s, 'f> Line<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>) -> Self {
+pub struct Line {
+    p0: Vec2<f32>,
+    p1: Vec2<f32>,
+    width: f32,
+    smooth: bool,
+    color: [f32; 4],
+    anchor: Anchor,
+    scaling: bool,
+    depth: f32,
+}
+
+impl<'s> LineBuilder<'s> {
+    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>) -> Self {
         Self {
             p0: Vec2::new(0.2, 0.2),
             p1: Vec2::new(-0.2, -0.2),
@@ -29,7 +40,7 @@ impl<'s, 'f> Line<'s, 'f> {
             anchor: Anchor::Middle,
             scaling: false,
             depth: 0.0,
-            frame
+            shape_vec
         }
     }
 
@@ -40,6 +51,21 @@ impl<'s, 'f> Line<'s, 'f> {
     }
 
     pub fn draw(self) {
+        self.shape_vec.push((Box::new(Line {
+            p0: self.p0,
+            p1: self.p1,
+            color: self.color,
+            anchor: self.anchor,
+            scaling: self.scaling,
+            depth: self.depth,
+            smooth: self.smooth,
+            width: self.width,
+        }), self.depth))
+    }
+}
+
+impl super::Shape for Line {
+    fn draw(&mut self, frame: &mut Frame) {
         let a = (self.p1 - self.p0).normalize();
         
         let mut v0 = Vec2::new(a.y, -a.x) * self.width + self.p0;
@@ -61,10 +87,10 @@ impl<'s, 'f> Line<'s, 'f> {
             Vertex{ position: v3.as_array()},
         ];
 
-        let vertex_buffer = glium::VertexBuffer::new(self.frame.display, verts)
+        let vertex_buffer = glium::VertexBuffer::new(frame.display, verts)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
+        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
 
         let uniforms = uniform!{
@@ -72,11 +98,10 @@ impl<'s, 'f> Line<'s, 'f> {
             p1: self.p1.as_array(),
             width: self.width,
             anchor: self.anchor.as_vec().as_array(),
-            aspect_ratio: self.frame.aspect_ratio,
-            scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
+            aspect_ratio: frame.aspect_ratio,
+            scaled_aspect_ratio: frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: self.frame.window_dimensions.as_array(),
-            depth: self.depth,
+            window_dimensions: frame.window_dimensions.as_array(),
             fill_color: self.color,
         };
 
@@ -90,19 +115,19 @@ impl<'s, 'f> Line<'s, 'f> {
             .. Default::default()
         };
 
-        self.frame.frame.draw(
+        frame.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            self.frame.no_transform_line,
+            frame.no_transform_line,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");
     }
 }
 
-color!(Line);
-anchor!(Line);
-smooth!(Line);
-width!(Line);
-scaling!(Line);
-depth!(Line);
+color!(LineBuilder);
+anchor!(LineBuilder);
+smooth!(LineBuilder);
+width!(LineBuilder);
+scaling!(LineBuilder);
+depth!(LineBuilder);

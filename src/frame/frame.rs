@@ -23,31 +23,32 @@ pub struct Frame<'f> {
     pub(crate) scaled_aspect_ratio: f32,
     pub(crate) images: &'f HashMap<String, Texture2d>,
     pub(crate) fonts: &'f HashMap<String, FontTexture>,
+    pub(crate) shapes: Vec<(Box<dyn Shape>, f32)>,
 }
 
 impl<'f> Frame<'f> {
-    pub fn rect<'s>(&'s mut self) -> Rect<'s, 'f> {
-        Rect::new(self)
+    pub fn rect<'s>(&'s mut self) -> RectBuilder {
+        RectBuilder::new(&mut self.shapes)
     }
 
-    pub fn line<'s>(&'s mut self) -> Line<'s, 'f> {
-        Line::new(self)
+    pub fn line<'s>(&'s mut self) -> LineBuilder {
+        LineBuilder::new(&mut self.shapes)
     }
 
-    pub fn ellipse<'s>(&'s mut self) -> Ellipse<'s, 'f> {
-        Ellipse::new(self)
+    pub fn ellipse<'s>(&'s mut self) -> EllipseBuilder {
+        EllipseBuilder::new(&mut self.shapes)
     }
 
-    pub fn image<'s, P>(&'s mut self, image: P) -> rendering::Image<'s, 'f> 
+    pub fn image<'s, P>(&'s mut self, image: P) -> ImageBuilder
         where P: Into<String>
     {
-        rendering::Image::new(self, image.into())
+        rendering::ImageBuilder::new(self, image.into())
     }
 
-    pub fn text<'s, P>(&'s mut self, font: P) -> rendering::Text<'s, 'f> 
+    pub fn text<'s, P>(&'s mut self, font: P) -> TextBuilder
         where P: Into<String>
     {
-        rendering::Text::new(self, font.into())
+        rendering::TextBuilder::new(&mut self.shapes, font.into())
     }
 
     pub fn clear(&mut self) {

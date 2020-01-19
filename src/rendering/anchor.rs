@@ -1,5 +1,6 @@
 use super::super::math::*;
 
+#[derive(Clone, Copy)]
 pub enum Anchor {
     Middle,
     TopLeft,

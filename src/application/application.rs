@@ -393,13 +393,22 @@ impl Application {
                 aspect_ratio,
                 scaled_aspect_ratio,
                 images: &images,
-                fonts: &fonts
+                fonts: &fonts,
+                shapes: Vec::new(),
             };
 
             states.iter_mut().for_each(|state| state.draw(
                 &mut f,
                 &state_data,
             ));
+
+            let mut shapes = std::mem::replace(&mut f.shapes, Vec::new());
+
+            shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
+
+            shapes.iter_mut().for_each(|(shape, _)| {
+                shape.draw(&mut f);
+            });
 
             let dest_texture_buffer = glium::texture::texture2d::Texture2d::empty_with_format(
                 &display,

@@ -13,22 +13,34 @@ static RECT_VERTS: &[TextureVertex] = &[
 
 static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
 
-pub struct Image<'s, 'f> {
+pub struct ImageBuilder<'s> {
     image: String,
     position: Vec2<f32>,
     size: Vec2<f32>,
     rotation: f32,
     color: [f32; 4],
-    frame: &'s mut Frame<'f>,
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
     depth: f32,
     ratio: f32,
+    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
 }
 
-impl<'s, 'f> Image<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>, image: String) -> Self {
+pub struct Image {
+    image: String,
+    position: Vec2<f32>,
+    size: Vec2<f32>,
+    rotation: f32,
+    color: [f32; 4],
+    anchor: Anchor,
+    pivot: Anchor,
+    scaling: bool,
+    depth: f32,
+}
+
+impl<'s> ImageBuilder<'s> {
+    pub fn new(frame: &'s mut Frame, image: String) -> Self {
         let img = frame.images.get(&image).unwrap();
 
         let image_dimensions = img.dimensions();
@@ -45,23 +57,38 @@ impl<'s, 'f> Image<'s, 'f> {
             scaling: false,
             ratio: dimension_ratio,
             depth: 0.0,
-            frame
+            shape_vec: &mut frame.shapes,
         }
     }
 
     pub fn scale(mut self, scale: f32) -> Self {
         self.size = Vec2::new(scale * self.ratio, scale);
-
         self
     }
 
-    pub fn draw(mut self) {
-        let image = self.frame.images.get(&self.image).unwrap();
+    pub fn draw(self) {
+        self.shape_vec.push((Box::new(Image {
+            position: self.position,
+            size: self.size,
+            rotation: self.rotation,
+            color: self.color,
+            anchor: self.anchor,
+            pivot: self.pivot,
+            scaling: self.scaling,
+            depth: self.depth,
+            image: self.image,
+        }), self.depth))
+    }
+}
+
+impl super::Shape for Image {
+    fn draw(&mut self, frame: &mut Frame) {
+        let image = frame.images.get(&self.image).unwrap();
 
         let tex_dims = image.dimensions();
         let tex_dims = (tex_dims.0 as f32, tex_dims.1 as f32);
 
-        self.frame.pixel_window_dimensions.map(|dims| {
+        frame.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
 
             let tex_dims = Vec2::new(tex_dims.0, tex_dims.1);
@@ -69,10 +96,10 @@ impl<'s, 'f> Image<'s, 'f> {
             self.size = tex_dims / dims.y * 2.0;
         }); 
 
-        let vertex_buffer = glium::VertexBuffer::new(self.frame.display, RECT_VERTS)
+        let vertex_buffer = glium::VertexBuffer::new(frame.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
+        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
 
         
@@ -83,13 +110,12 @@ impl<'s, 'f> Image<'s, 'f> {
             rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
-            aspect_ratio: self.frame.aspect_ratio,
-            scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
+            aspect_ratio: frame.aspect_ratio,
+            scaled_aspect_ratio: frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: self.frame.window_dimensions.as_array(),
+            window_dimensions: frame.window_dimensions.as_array(),
             fill_color: self.color,
             texture_dimensions: tex_dims,
-            depth: self.depth,
             tex: image,
         };
 
@@ -103,21 +129,21 @@ impl<'s, 'f> Image<'s, 'f> {
             .. Default::default()
         };
 
-        self.frame.frame.draw(
+        frame.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            self.frame.texture,
+            frame.texture,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");
     }
 }
 
-position!(Image);
-size!(Image);
-rotation!(Image);
-color!(Image);
-anchor!(Image);
-pivot!(Image);
-scaling!(Image);
-depth!(Image);
+position!(ImageBuilder);
+size!(ImageBuilder);
+rotation!(ImageBuilder);
+color!(ImageBuilder);
+anchor!(ImageBuilder);
+pivot!(ImageBuilder);
+scaling!(ImageBuilder);
+depth!(ImageBuilder);

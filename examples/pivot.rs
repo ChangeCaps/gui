@@ -11,16 +11,17 @@ impl SimpleState for PivotExample {
         frame.clear();
 
         frame.rect()
-            .color(color::rgb(0.7, 0.3, 0.2))
+            .color(color::rgba(0.7, 0.3, 0.2, 0.3))
+            .depth(0.5)
             .draw();
 
         frame.rect()
-            .color(color::rgb(0.2, 0.3, 0.7))
+            .color(color::rgba(0.2, 0.3, 0.7, 0.3))
             .pivot(Anchor::BottomLeft)
             .draw();
 
         frame.rect()
-            .color(color::rgb(0.3, 0.7, 0.2))
+            .color(color::rgba(0.3, 0.7, 0.2, 1.0))
             .pivot(Anchor::TopRight)
             .rotation(45.0)
             .draw();

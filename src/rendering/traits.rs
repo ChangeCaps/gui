@@ -3,7 +3,7 @@ macro_rules! create_impl {
         #[macro_export]
         macro_rules! $field {
             ($shape:ident) => {
-                impl<'s, 'f> $shape<'s, 'f> {
+                impl<'s> $shape<'s> {
                     pub fn $field(mut self, $field: $ty) -> Self {
                         self.$field = $field;
                         self

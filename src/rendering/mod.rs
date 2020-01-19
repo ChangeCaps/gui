@@ -24,6 +24,9 @@ pub(crate) struct TextureVertex {
     pub texture_coords: [f32; 2],
 }
 
+pub trait Shape {
+    fn draw<'f>(&mut self, frame: &mut super::Frame<'f>);
+}
 
 glium::implement_vertex!(Vertex, position);
 glium::implement_vertex!(TextureVertex, position, texture_coords);

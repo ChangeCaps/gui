@@ -4,13 +4,26 @@ use math::*;
 use glium;
 use glium::Surface;
 
-pub struct Text<'s, 'f> {
+pub struct TextBuilder<'s> {
     font: String,
     position: Vec2<f32>,
     scale: f32,
     rotation: f32,
     color: [f32; 4],
-    frame: &'s mut Frame<'f>,
+    anchor: Anchor,
+    pivot: Anchor,
+    scaling: bool,
+    depth: f32,
+    text: String,
+    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
+}
+
+pub struct Text {
+    font: String,
+    position: Vec2<f32>,
+    scale: f32,
+    rotation: f32,
+    color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
@@ -18,8 +31,8 @@ pub struct Text<'s, 'f> {
     text: String,
 }
 
-impl<'s, 'f> Text<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>, font: String) -> Self {
+impl<'s> TextBuilder<'s> {
+    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>, font: String) -> Self {
         Self {
             font,
             position: Vec2::new(0.0, 0.0),
@@ -29,9 +42,9 @@ impl<'s, 'f> Text<'s, 'f> {
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
             scaling: false,
-            frame,
             depth: 0.0,
             text: String::new(),
+            shape_vec
         }
     }
 
@@ -43,15 +56,32 @@ impl<'s, 'f> Text<'s, 'f> {
         self
     }
 
-    pub fn draw(mut self) {
+    pub fn draw(self) {
+        self.shape_vec.push((Box::new(Text {
+            position: self.position,
+            scale: self.scale,
+            rotation: self.rotation,
+            color: self.color,
+            anchor: self.anchor,
+            pivot: self.pivot,
+            scaling: self.scaling,
+            depth: self.depth,
+            text: self.text,
+            font: self.font,
+        }), self.depth))
+    }
+}
+
+impl super::Shape for Text {
+    fn draw(&mut self, frame: &mut Frame) {
         // don't draw if there is no text
         if self.text.len() == 0 {
             return;
         }
 
-        let font = self.frame.fonts.get(&self.font).unwrap();
+        let font = frame.fonts.get(&self.font).unwrap();
 
-        self.frame.pixel_window_dimensions.map(|dims| {
+        frame.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
             self.scale /= dims.y / 2.0;
         }); 
@@ -124,10 +154,10 @@ impl<'s, 'f> Text<'s, 'f> {
             }
         }
 
-        let vertex_buffer = glium::VertexBuffer::new(self.frame.display, &vertex_buffer_data)
+        let vertex_buffer = glium::VertexBuffer::new(frame.display, &vertex_buffer_data)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
+        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
             .expect("failed to create index buffer");   
 
         // calculate pivot
@@ -141,12 +171,11 @@ impl<'s, 'f> Text<'s, 'f> {
             rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             pivot: pivot.as_array(),
-            aspect_ratio: self.frame.aspect_ratio,
-            scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
+            aspect_ratio: frame.aspect_ratio,
+            scaled_aspect_ratio: frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: self.frame.window_dimensions.as_array(),
+            window_dimensions: frame.window_dimensions.as_array(),
             fill_color: self.color,
-            depth: self.depth,
             tex: glium::uniforms::Sampler(&font.texture, Default::default())
         };
 
@@ -162,21 +191,21 @@ impl<'s, 'f> Text<'s, 'f> {
         };
 
         // draw
-        self.frame.frame.draw(
+        frame.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            self.frame.text,
+            frame.text,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");
     }
 }
 
-position!(Text);
-rotation!(Text);
-color!(Text);
-anchor!(Text);
-pivot!(Text);
-scaling!(Text);
-scale!(Text);
-depth!(Text);
+position!(TextBuilder);
+rotation!(TextBuilder);
+color!(TextBuilder);
+anchor!(TextBuilder);
+pivot!(TextBuilder);
+scaling!(TextBuilder);
+scale!(TextBuilder);
+depth!(TextBuilder);

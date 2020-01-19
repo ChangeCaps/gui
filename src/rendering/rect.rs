@@ -13,20 +13,31 @@ static RECT_VERTS: &[Vertex] = &[
 
 static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
 
-pub struct Rect<'s, 'f> {
+pub struct RectBuilder<'s> {
     position: Vec2<f32>,
     size: Vec2<f32>,
     rotation: f32,
     color: [f32; 4],
-    frame: &'s mut Frame<'f>,
+    anchor: Anchor,
+    pivot: Anchor,
+    scaling: bool,
+    depth: f32,
+    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
+}
+
+pub struct Rect {
+    position: Vec2<f32>,
+    size: Vec2<f32>,
+    rotation: f32,
+    color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
     depth: f32,
 }
 
-impl<'s, 'f> Rect<'s, 'f> {
-    pub fn new(frame: &'s mut Frame<'f>) -> Self {
+impl<'s> RectBuilder<'s> {
+    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>) -> Self {
         Self {
             position: Vec2::new(0.0, 0.0),
             size: Vec2::new(0.2, 0.2),
@@ -36,20 +47,35 @@ impl<'s, 'f> Rect<'s, 'f> {
             pivot: Anchor::Middle,
             scaling: false,
             depth: 0.0,
-            frame
+            shape_vec
         }
     }
 
-    pub fn draw(mut self) {
-        self.frame.pixel_window_dimensions.map(|dims| {
+    pub fn draw(self) {
+        self.shape_vec.push((Box::new(Rect {
+            position: self.position,
+            size: self.size,
+            rotation: self.rotation,
+            color: self.color,
+            anchor: self.anchor,
+            pivot: self.pivot,
+            scaling: self.scaling,
+            depth: self.depth,
+        }), self.depth))
+    }
+}
+
+impl super::Shape for Rect {
+    fn draw<'f>(&mut self, frame: &mut Frame<'f>) {
+        frame.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
             self.size /= dims.y / 2.0;
         }); 
 
-        let vertex_buffer = glium::VertexBuffer::new(self.frame.display, RECT_VERTS)
+        let vertex_buffer = glium::VertexBuffer::new(frame.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
+        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
 
         let uniforms = uniform!{
@@ -58,11 +84,10 @@ impl<'s, 'f> Rect<'s, 'f> {
             rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
-            aspect_ratio: self.frame.aspect_ratio,
-            scaled_aspect_ratio: self.frame.scaled_aspect_ratio,
+            aspect_ratio: frame.aspect_ratio,
+            scaled_aspect_ratio: frame.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: self.frame.window_dimensions.as_array(),
-            depth: self.depth,
+            window_dimensions: frame.window_dimensions.as_array(),
             fill_color: self.color,
         };
 
@@ -76,21 +101,22 @@ impl<'s, 'f> Rect<'s, 'f> {
             .. Default::default()
         };
 
-        self.frame.frame.draw(
+        frame.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            self.frame.simple_transform_fill,
+            frame.simple_transform_fill,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");
     }
 }
 
-position!(Rect);
-size!(Rect);
-rotation!(Rect);
-color!(Rect);
-anchor!(Rect);
-pivot!(Rect);
-scaling!(Rect);
-depth!(Rect);
+
+position!(RectBuilder);
+size!(RectBuilder);
+rotation!(RectBuilder);
+color!(RectBuilder);
+anchor!(RectBuilder);
+pivot!(RectBuilder);
+scaling!(RectBuilder);
+depth!(RectBuilder);

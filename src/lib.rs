@@ -20,6 +20,7 @@ pub use state::*;
 pub use frame::*;
 pub use rendering::{
     Anchor,
+    Shape,
 };
 pub use image::ImageFormat::*;
 pub use loader::*;
