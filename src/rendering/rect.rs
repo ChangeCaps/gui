@@ -68,6 +68,11 @@ impl<'s, 'f> Rect<'s, 'f> {
 
         let draw_params = glium::DrawParameters {
             blend: glium::Blend::alpha_blending(),
+            depth: glium::Depth {
+                test: glium::DepthTest::IfMoreOrEqual,
+                write: true,
+                .. Default::default()
+            },
             .. Default::default()
         };
 

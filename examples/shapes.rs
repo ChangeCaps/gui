@@ -20,13 +20,7 @@ impl SimpleState for ShapeExample {
                 .smooth(true)
                 .draw();
 
-            frame.ellipse()
-                .scaling(true)
-                .position((p1 + p0) / 2.0)
-                .size(Vec2::new(0.1, 0.2))
-                .color(color::rgba(0.7, 0.0, 0.2, 0.6))
-                .draw();
-
+                
             frame.line()
                 .points(
                     Vec2::new(-0.2, 0.8),
@@ -37,7 +31,15 @@ impl SimpleState for ShapeExample {
                 .smooth(true)
                 .anchor(Anchor::MiddleRight)
                 .draw();
-        }
+
+            frame.rect()
+                .scaling(true)
+                .position((p1 + p0) / 2.0)
+                .size(Vec2::new(0.1, 0.5))
+                .color(color::rgba(0.7, 0.0, 0.2, 0.6))
+                .depth(0.5)
+                .draw();
+            }
         
         frame.line()
             .points(

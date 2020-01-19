@@ -5,7 +5,7 @@ uniform vec2 anchor;
 uniform float aspect_ratio;
 uniform float scaled_aspect_ratio;
 uniform bool scale_aspect_ratio;
-uniform float debth;
+uniform float depth;
 
 in vec2 position;
 
@@ -20,5 +20,5 @@ void main() {
 
     vertex_position += anchor;
 
-    gl_Position = vec4(vertex_position, debth, 1.0);
+    gl_Position = vec4(vertex_position, depth / 2.0 + 0.5, 1.0);
 }

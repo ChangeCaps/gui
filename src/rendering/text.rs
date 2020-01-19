@@ -153,6 +153,11 @@ impl<'s, 'f> Text<'s, 'f> {
         // enable alpha blending
         let draw_params = glium::DrawParameters {
             blend: glium::Blend::alpha_blending(),
+            depth: glium::Depth {
+                test: glium::DepthTest::IfMoreOrEqual,
+                write: true,
+                .. Default::default()
+            },
             .. Default::default()
         };
 

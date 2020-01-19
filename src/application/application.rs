@@ -338,7 +338,9 @@ impl Application {
                 mouse_buttons_released: &mouse_buttons_released,
             };
 
-            let frame = display.draw();
+            let mut frame = display.draw();
+
+            frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
 
             if states.len() == 0 {
                 frame.finish()
@@ -375,6 +377,8 @@ impl Application {
             // create frame_buffer
             let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&display, &texture_buffer, &depth_buffer)
                 .expect("failed to create framebuffer");
+
+            frame_buffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
           
             let mut f = Frame {
                 frame: &mut frame_buffer,
@@ -405,12 +409,22 @@ impl Application {
                 dims.1
             ).expect("failed to create texture buffer");
 
-            texture_buffer.as_surface().fill(
-                &dest_texture_buffer.as_surface(),
+            let dest_depth_buffer = glium::framebuffer::DepthRenderBuffer::new(
+                &display,
+                glium::texture::DepthFormat::F32,
+                dims.0,
+                dims.1
+            ).expect("failed to create depth buffer");
+
+            let dest_frame_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&display, &dest_texture_buffer, &dest_depth_buffer)
+            .expect("failed to create framebuffer");
+
+            f.frame.fill(
+                &dest_frame_buffer,
                 glium::uniforms::MagnifySamplerFilter::Nearest,
             );
 
-            dest_texture_buffer.as_surface().fill(
+            dest_frame_buffer.fill(
                 &frame,
                 glium::uniforms::MagnifySamplerFilter::Nearest,
             );
