@@ -246,9 +246,9 @@ impl Application {
                         ) * window_dimensions_multiplier 
                           / window_dimensions 
                           * 2.0 - 1.0) * if let Some(size) = self.pixel_window_size {
-                              Vec2::new(size.x as f32, size.y as f32) / 2.0
+                              size.y as f32 / 2.0
                           } else {
-                              Vec2::new(1.0, 1.0)
+                              0.0
                           };
                         mouse_position.y = -mouse_position.y;
 
