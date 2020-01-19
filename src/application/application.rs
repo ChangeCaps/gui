@@ -240,7 +240,16 @@ impl Application {
                         return;
                     },
                     WindowEvent::CursorMoved {position, ..} => {
-                        mouse_position = Vec2::new(position.x as f32, position.y as f32) * window_dimensions_multiplier / window_dimensions * 2.0 - 1.0;
+                        mouse_position = (Vec2::new(
+                            position.x as f32, 
+                            position.y as f32
+                        ) * window_dimensions_multiplier 
+                          / window_dimensions 
+                          * 2.0 - 1.0) * if let Some(size) = self.pixel_window_size {
+                              Vec2::new(size.x as f32, size.y as f32)
+                          } else {
+                              Vec2::new(1.0, 1.0)
+                          };
                         mouse_position.y = -mouse_position.y;
 
                         scaled_mouse_position = mouse_position;
