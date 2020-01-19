@@ -365,8 +365,15 @@ impl Application {
                 h
             ).expect("failed to create texture buffer");
                 
+            let depth_buffer = glium::framebuffer::DepthRenderBuffer::new(
+                &display,
+                glium::texture::DepthFormat::F32,
+                w,
+                h
+            ).expect("failed to create depth buffer");
+
             // create frame_buffer
-            let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::new(&display, &texture_buffer)
+            let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&display, &texture_buffer, &depth_buffer)
                 .expect("failed to create framebuffer");
           
             let mut f = Frame {

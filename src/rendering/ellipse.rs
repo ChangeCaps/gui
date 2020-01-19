@@ -20,7 +20,7 @@ pub struct Ellipse<'s, 'f> {
     frame: &'s mut Frame<'f>,
     anchor: Anchor,
     pivot: Anchor,
-    debth: f32,
+    depth: f32,
     scaling: bool,
 }
 
@@ -33,7 +33,7 @@ impl<'s, 'f> Ellipse<'s, 'f> {
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
             scaling: false,
-            debth: 0.0,
+            depth: 0.0,
             frame,
         }
     }
@@ -85,4 +85,4 @@ color!(Ellipse);
 anchor!(Ellipse);
 pivot!(Ellipse);
 scaling!(Ellipse);
-debth!(Ellipse);
+depth!(Ellipse);

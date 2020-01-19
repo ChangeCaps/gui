@@ -14,7 +14,7 @@ pub struct Text<'s, 'f> {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    debth: f32,
+    depth: f32,
     text: String,
 }
 
@@ -30,7 +30,7 @@ impl<'s, 'f> Text<'s, 'f> {
             pivot: Anchor::Middle,
             scaling: false,
             frame,
-            debth: 0.0,
+            depth: 0.0,
             text: String::new(),
         }
     }
@@ -146,7 +146,7 @@ impl<'s, 'f> Text<'s, 'f> {
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
-            debth: self.debth,
+            depth: self.depth,
             tex: glium::uniforms::Sampler(&font.texture, Default::default())
         };
 
@@ -174,4 +174,4 @@ anchor!(Text);
 pivot!(Text);
 scaling!(Text);
 scale!(Text);
-debth!(Text);
+depth!(Text);

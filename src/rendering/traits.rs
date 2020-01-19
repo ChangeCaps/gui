@@ -24,4 +24,4 @@ create_impl!(pivot, Anchor);
 create_impl!(smooth, bool);
 create_impl!(width, f32);
 create_impl!(scale, f32);
-create_impl!(debth, f32);
+create_impl!(depth, f32);
