@@ -50,8 +50,8 @@ impl<'s, 'f> Text<'s, 'f> {
         let font = self.frame.fonts.get(&self.font).unwrap();
 
         self.frame.pixel_window_dimensions.map(|dims| {
-            self.position /= dims;
-            self.scale /= dims.y;
+            self.position /= dims.y / 2.0;
+            self.scale /= dims.y / 2.0;
         }); 
 
         let mut vertex_buffer_data = Vec::with_capacity(self.text.len() * 4 * 4);

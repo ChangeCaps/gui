@@ -60,7 +60,7 @@ impl<'s, 'f> Image<'s, 'f> {
         let tex_dims = (tex_dims.0 as f32, tex_dims.1 as f32);
 
         self.frame.pixel_window_dimensions.map(|dims| {
-            self.position /= dims / 2.0;
+            self.position /= dims.y / 2.0;
 
             let tex_dims = Vec2::new(tex_dims.0, tex_dims.1);
 
