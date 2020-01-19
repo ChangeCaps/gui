@@ -184,8 +184,10 @@ impl Application {
         event_loop.run(move |event, _, flow| {
             *flow = ControlFlow::WaitUntil(Instant::now() + self.frame_time);
 
+            // get window dimensions
             let dims = display.get_framebuffer_dimensions();
 
+            // dims as f32
             let w = dims.0 as f32;
             let h = dims.1 as f32;
             
@@ -196,7 +198,6 @@ impl Application {
             let window_dimensions = Vec2::new(w, h);
 
             // event handling
-
             match event {
                 Event::WindowEvent {event, ..} => match event {
                     WindowEvent::CloseRequested => {
@@ -223,9 +224,11 @@ impl Application {
             } 
 
 
+            // calculate delta-time
             let delta_time = Instant::now().duration_since(last_frame);
             last_frame = Instant::now();
 
+            // crate state data
             let state_data = StateData {
                 delta_time: delta_time.as_secs_f32(),
                 frame_dimensions,

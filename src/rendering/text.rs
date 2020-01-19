@@ -33,6 +33,7 @@ impl<'s, 'f> Text<'s, 'f> {
         }
     }
 
+    // set the text
     pub fn text<T>(mut self, text: T) -> Self 
         where T: Into<String>
     {
@@ -40,7 +41,8 @@ impl<'s, 'f> Text<'s, 'f> {
         self
     }
 
-    pub fn draw(mut self) {
+    pub fn draw(self) {
+        // don't draw if there is no text
         if self.text.len() == 0 {
             return;
         }
@@ -52,6 +54,7 @@ impl<'s, 'f> Text<'s, 'f> {
 
         let mut height = 0.0;
 
+        // calc verts & indecies
         for character in self.text.chars() {
             let infos = match self.frame.fonts[self.font.index].character_infos.get(&character) {
                 Some(infos) => infos,
@@ -69,7 +72,7 @@ impl<'s, 'f> Text<'s, 'f> {
                 index_buffer_data.push(first_vertex_offset + 3);
             }
 
-            //
+            // add to total width
             total_text_width += infos.left_padding;
             
             // calculating coords
@@ -118,6 +121,7 @@ impl<'s, 'f> Text<'s, 'f> {
         let index_buffer = glium::IndexBuffer::new(self.frame.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
             .expect("failed to create index buffer");   
 
+        // calculate pivot
         let mut pivot = self.pivot.as_vec()/2.0 + 0.5;
         pivot.x *= total_text_width;
         pivot.y *= height;
@@ -136,11 +140,13 @@ impl<'s, 'f> Text<'s, 'f> {
             tex: glium::uniforms::Sampler(&self.frame.fonts[self.font.index].texture, Default::default())
         };
 
+        // enable alpha blending
         let draw_params = glium::DrawParameters {
             blend: glium::Blend::alpha_blending(),
             .. Default::default()
         };
 
+        // draw
         self.frame.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
