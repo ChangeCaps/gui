@@ -19,7 +19,7 @@ struct Vertex {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct TextureVertex {
+pub(crate) struct TextureVertex {
     pub position: [f32; 2],
     pub texture_coords: [f32; 2],
 }

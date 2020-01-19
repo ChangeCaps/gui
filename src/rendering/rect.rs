@@ -38,7 +38,12 @@ impl<'s, 'f> Rect<'s, 'f> {
         }
     }
 
-    pub fn draw(self) {
+    pub fn draw(mut self) {
+        self.frame.pixel_window_dimensions.map(|dims| {
+            self.position /= dims;
+            self.size /= dims.y;
+        }); 
+
         let vertex_buffer = glium::VertexBuffer::new(self.frame.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 

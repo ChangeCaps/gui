@@ -41,11 +41,16 @@ impl<'s, 'f> Text<'s, 'f> {
         self
     }
 
-    pub fn draw(self) {
+    pub fn draw(mut self) {
         // don't draw if there is no text
         if self.text.len() == 0 {
             return;
         }
+
+        self.frame.pixel_window_dimensions.map(|dims| {
+            self.position /= dims;
+            self.scale /= dims.y;
+        }); 
 
         let mut vertex_buffer_data = Vec::with_capacity(self.text.len() * 4 * 4);
         let mut index_buffer_data = Vec::with_capacity(self.text.len() * 6);

@@ -39,7 +39,7 @@ void main() {
 
         position.x *= aspect_ratio;
     }
-
+    
     if (min_distance(p0, p1, position) < width) {
         color = fill_color;
     }

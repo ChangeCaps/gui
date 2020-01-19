@@ -117,7 +117,7 @@ impl<I> Vec2<I> {
 
     pub fn as_array(self) -> [I; 2] {
         [self.x, self.y]
-    }   
+    }
 }
 
 impl<I> Into<[I; 2]> for Vec2<I> {

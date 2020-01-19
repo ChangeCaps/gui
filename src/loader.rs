@@ -1,14 +1,16 @@
 use super::Image;
 use super::Font;
 use super::FontTexture;
+use super::TextInput;
 use super::math::*;
 use std::io::Read;
-use glium::texture::CompressedSrgbTexture2d;
+use glium::texture::texture2d::Texture2d;
 
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
-    pub(crate) images: &'s mut Vec<CompressedSrgbTexture2d>,
+    pub(crate) images: &'s mut Vec<Texture2d>,
     pub(crate) fonts: &'s mut Vec<FontTexture>,
+    pub(crate) text_inputs: &'s mut Vec<std::rc::Rc<std::cell::RefCell<(String, bool)>>>,
 }
 
 impl<'s> Loader<'s> {
@@ -41,7 +43,7 @@ impl<'s> Loader<'s> {
 
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 
-        let texture = CompressedSrgbTexture2d::new(self.display, image)
+        let texture = Texture2d::new(self.display, image)
             .expect("GUI::IMAGE Failed to create texture buffer");
 
         let index = self.images.len();
@@ -51,6 +53,16 @@ impl<'s> Loader<'s> {
         Image {
             index,
             dimensions: Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
+        }
+    }
+
+    pub fn text_input(&mut self) -> TextInput {
+        let cell = std::rc::Rc::new(std::cell::RefCell::new((String::new(), false)));
+
+        self.text_inputs.push(cell.clone());
+
+        TextInput {
+            text: cell,
         }
     }
 }

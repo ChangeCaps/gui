@@ -6,10 +6,10 @@ use glium::{
 use super::super::*;
 use math::*;
 use rendering::*;
-use glium::texture::CompressedSrgbTexture2d;
+use glium::texture::texture2d::Texture2d;
 
 pub struct Frame<'f> {
-    pub(crate) frame: &'f mut glium::Frame,
+    pub(crate) frame: &'f mut glium::framebuffer::SimpleFrameBuffer<'f>,
     pub(crate) simple_transform_fill: &'f Program,
     pub(crate) simple_transform_ellipse: &'f Program,
     pub(crate) no_transform_line: &'f Program,
@@ -17,9 +17,10 @@ pub struct Frame<'f> {
     pub(crate) text: &'f Program,
     pub(crate) display: &'f Display,
     pub(crate) window_dimensions: Vec2<f32>,
+    pub(crate) pixel_window_dimensions: Option<Vec2<f32>>,
     pub(crate) aspect_ratio: f32,
     pub(crate) scaled_aspect_ratio: f32,
-    pub(crate) images: &'f Vec<CompressedSrgbTexture2d>,
+    pub(crate) images: &'f Vec<Texture2d>,
     pub(crate) fonts: &'f Vec<FontTexture>,
 }
 

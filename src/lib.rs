@@ -12,6 +12,9 @@ pub mod rendering;
 mod img;
 mod loader;
 mod font;
+mod text_input;
+
+pub type KeyCode = glium::glutin::event::VirtualKeyCode;
 
 pub use application::*;
 pub use state::*;
@@ -23,3 +26,5 @@ pub use img::*;
 pub use image::ImageFormat::*;
 pub use loader::*;
 pub use font::*;
+pub use glium::glutin::event::MouseButton;
+pub use text_input::*;

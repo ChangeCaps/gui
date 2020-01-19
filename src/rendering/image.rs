@@ -52,7 +52,18 @@ impl<'s, 'f> Image<'s, 'f> {
         self
     }
 
-    pub fn draw(self) {
+    pub fn draw(mut self) {
+        let tex_dims = self.frame.images[self.image.index].dimensions();
+        let tex_dims = (tex_dims.0 as f32, tex_dims.1 as f32);
+
+        self.frame.pixel_window_dimensions.map(|dims| {
+            self.position /= dims / 2.0;
+
+            let tex_dims = Vec2::new(tex_dims.0, tex_dims.1);
+
+            self.size = tex_dims / dims.y * 2.0;
+        }); 
+
         let vertex_buffer = glium::VertexBuffer::new(self.frame.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
@@ -72,6 +83,7 @@ impl<'s, 'f> Image<'s, 'f> {
             scale_aspect_ratio: self.scaling,
             window_dimensions: self.frame.window_dimensions.as_array(),
             fill_color: self.color,
+            texture_dimensions: tex_dims,
             tex: &self.frame.images[self.image.index],
         };
 

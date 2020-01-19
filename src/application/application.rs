@@ -1,7 +1,8 @@
 use super::super::*;
 use math::*;
 use glium;
-use glium::{ glutin::{
+use glium::{ 
+    glutin::{
         event_loop::{
             EventLoop,
             ControlFlow,
@@ -10,14 +11,17 @@ use glium::{ glutin::{
             Event,
             StartCause,
             WindowEvent,
+            ElementState,
         },
         window::WindowBuilder,
-        ContextBuilder,      
+        ContextBuilder,
     },
     Display,
     Program,
+    Surface,
 };
 use std::time::{Instant, Duration};
+use std::collections::HashSet;
 
 pub struct Application {
     pub title: &'static str,
@@ -25,6 +29,7 @@ pub struct Application {
     pub aspect_ratio: Option<f32>,
     pub resizable: bool,
     pub window_size: Vec2<u32>,
+    pub pixel_window_size: Option<Vec2<u32>>,
 }
 
 impl Application {
@@ -35,6 +40,7 @@ impl Application {
             aspect_ratio: None,
             resizable: true,
             window_size: Vec2::new(800, 600),
+            pixel_window_size: None,
         }
     }
 
@@ -63,7 +69,14 @@ impl Application {
         self
     }
 
-    pub fn run(self, start: fn(&mut super::super::Loader) -> Box<dyn State>) {
+    pub fn with_pixel_window_size(mut self, width: u32, height: u32) -> Application {
+        self.pixel_window_size = Some(Vec2::new(width, height));
+        self
+    }
+
+    pub fn run<F>(self, mut start: F) 
+        where F: FnMut(&mut super::super::Loader) -> Box<dyn State>
+    {
         //
         // initialization
         //
@@ -141,7 +154,6 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::INITIALIZATION Text loaded\n");   
 
-
         //
         // main loop
         //
@@ -164,25 +176,48 @@ impl Application {
 
         let aspect_ratio = self.aspect_ratio.unwrap_or(self.window_size.x as f32/self.window_size.y as f32);
 
+        // inputs
+        
+        let mut keys_held = HashSet::new();
+        let mut mouse_buttons_held = HashSet::new();
+            
+        let mut keys_pressed = HashSet::new();
+        let mut keys_released = HashSet::new();
+
+        let mut mouse_buttons_pressed = HashSet::new();
+        let mut mouse_buttons_released = HashSet::new();
+
+
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
         let mut images = Vec::new();
         let mut fonts = Vec::new();
+        let mut text_inputs = Vec::new();
 
         let mut loader = super::super::Loader {
             display: &display,
             images: &mut images,
             fonts: &mut fonts,
+            text_inputs: &mut text_inputs,
         };
 
         let mut states = vec![start(&mut loader)];
+
+        // used to ensure that we don't go above the desired frame rate
+        let mut next_frame_time = Instant::now() + self.frame_time;
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
 
         event_loop.run(move |event, _, flow| {
-            *flow = ControlFlow::WaitUntil(Instant::now() + self.frame_time);
+            // update next_frame_time
+            if next_frame_time <= Instant::now() {
+                next_frame_time = Instant::now() + self.frame_time;
+            }
+
+            // set ControlFlow
+            *flow = ControlFlow::WaitUntil(next_frame_time);
 
             // get window dimensions
             let dims = display.get_framebuffer_dimensions();
@@ -197,7 +232,7 @@ impl Application {
             let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio, 1.0);
             let window_dimensions = Vec2::new(w, h);
 
-            // event handling
+            // event handling 
             match event {
                 Event::WindowEvent {event, ..} => match event {
                     WindowEvent::CloseRequested => {
@@ -212,9 +247,66 @@ impl Application {
                         scaled_mouse_position.x *= scaled_aspect_ratio;
 
                         mouse_position.x *= aspect_ratio;
+
+                        return;
                     },
-                    _ => *flow = ControlFlow::Poll,
-                },
+                    WindowEvent::KeyboardInput {input, ..} => {
+                        match input.state {
+                            ElementState::Pressed => {
+                                input.virtual_keycode.map(|key| { 
+                                    keys_held.insert(key);
+                                    keys_pressed.insert(key);
+                                });
+                            },
+                            ElementState::Released => { 
+                                input.virtual_keycode.map(|key| { 
+                                    keys_held.remove(&key);
+                                    keys_released.insert(key);
+                                });
+                            }
+                        }
+                        
+                        return;
+                    },
+                    WindowEvent::MouseInput {button, state, ..} => {
+                        match state {
+                            ElementState::Pressed => {
+                                mouse_buttons_held.insert(button);
+                                mouse_buttons_pressed.insert(button);
+                            },
+                            ElementState::Released => { 
+                                mouse_buttons_held.remove(&button);
+                                mouse_buttons_released.insert(button);
+                            },
+                        }
+
+                        return;
+                    },
+                    WindowEvent::ReceivedCharacter(c) => { 
+                        text_inputs.iter_mut().for_each(|input| {
+                            match c as u8 {
+                                13 => {
+                                    
+                                },
+                                08 => {
+                                    let mut s = input.borrow_mut();
+
+                                    s.0.pop();
+                                },
+                                _ => {
+                                    let mut s = input.borrow_mut();
+     
+                                    if true {
+                                        s.0.push(c);
+                                    }
+                                }
+                            }
+                        });                        
+
+                        return;
+                    }
+                    _ => return,
+                }, 
                 Event::NewEvents(cause) => match cause {
                     StartCause::ResumeTimeReached { .. } => (),
                     StartCause::Init => (),
@@ -223,6 +315,7 @@ impl Application {
                 _ => return,
             } 
 
+            // state data
 
             // calculate delta-time
             let delta_time = Instant::now().duration_since(last_frame);
@@ -237,11 +330,15 @@ impl Application {
                 aspect_ratio,
                 mouse_position,
                 scaled_mouse_position,
+                keys_pressed: &keys_pressed,
+                keys_held: &keys_held,
+                keys_released: &keys_released,
+                mouse_buttons_pressed: &mouse_buttons_pressed,
+                mouse_buttons_held: &mouse_buttons_held,
+                mouse_buttons_released: &mouse_buttons_released,
             };
 
-            // drawing
-
-            let mut frame = display.draw();
+            let frame = display.draw();
 
             if states.len() == 0 {
                 frame.finish()
@@ -251,26 +348,82 @@ impl Application {
             }
 
             let index = states.len() - 1;
-            let trans = states[index].draw(
-                Frame {
-                    frame: &mut frame,
-                    simple_transform_fill: &simple_transform_fill,
-                    simple_transform_ellipse: &simple_transform_ellipse,
-                    no_transform_line: &no_transform_line,
-                    texture: &texture,
-                    display: &display,
-                    text: &text,
-                    window_dimensions: Vec2::new(w, h),
-                    aspect_ratio,
-                    scaled_aspect_ratio,
-                    images: &images,
-                    fonts: &fonts
-                },
-                state_data,
+        
+            let (w, h, aspect_ratio) = if let Some(size) = self.pixel_window_size {
+                (size.x, size.y, size.x as f32/size.y as f32)
+            } else {
+                (dims.0, dims.1, aspect_ratio)
+            };
+
+            
+            // create texture_buffer
+            let texture_buffer = glium::texture::texture2d::Texture2d::empty_with_format(
+                &display,
+                glium::texture::UncompressedFloatFormat::U8U8U8U8,
+                glium::texture::MipmapsOption::NoMipmap,
+                w, 
+                h
+            ).expect("failed to create texture buffer");
+                
+            // create frame_buffer
+            let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::new(&display, &texture_buffer)
+                .expect("failed to create framebuffer");
+          
+            let mut f = Frame {
+                frame: &mut frame_buffer,
+                simple_transform_fill: &simple_transform_fill,
+                simple_transform_ellipse: &simple_transform_ellipse,
+                no_transform_line: &no_transform_line,
+                texture: &texture,
+                display: &display,
+                text: &text,
+                window_dimensions: Vec2::new(w as f32, h as f32),
+                pixel_window_dimensions: self.pixel_window_size.map(|x| Vec2::new(x.x as f32, x.y as f32)),
+                aspect_ratio,
+                scaled_aspect_ratio,
+                images: &images,
+                fonts: &fonts
+            };
+
+            states.iter_mut().for_each(|state| state.draw(
+                &mut f,
+                &state_data,
+            ));
+
+            let dest_texture_buffer = glium::texture::texture2d::Texture2d::empty_with_format(
+                &display,
+                glium::texture::UncompressedFloatFormat::U8U8U8U8,
+                glium::texture::MipmapsOption::NoMipmap,
+                dims.0, 
+                dims.1
+            ).expect("failed to create texture buffer");
+
+            texture_buffer.as_surface().fill(
+                &dest_texture_buffer.as_surface(),
+                glium::uniforms::MagnifySamplerFilter::Nearest,
+            );
+
+            dest_texture_buffer.as_surface().fill(
+                &frame,
+                glium::uniforms::MagnifySamplerFilter::Nearest,
             );
 
             frame.finish()
                 .expect("GUI::APPLICATION Failed to finish frame");
+            
+            // 
+            // transition handling
+            //
+
+            let trans = states[index].update(&state_data);
+
+            states.iter_mut().for_each(|state| state.shadow_update(&state_data));
+
+            keys_pressed = HashSet::new();
+            mouse_buttons_pressed = HashSet::new();
+
+            keys_released = HashSet::new();
+            mouse_buttons_released = HashSet::new();
 
             match trans {
                 Transition::Trans(state) => {

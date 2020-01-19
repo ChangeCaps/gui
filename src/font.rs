@@ -1,14 +1,9 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::default::Default;
 use std::io::Read;
-use std::ops::Deref;
-use std::rc::Rc;
 
 use rusttype::{Rect, Point};
 
-use glium::DrawParameters;
-use glium::backend::Context;
 use glium::backend::Facade;
 
 #[derive(Debug)]
