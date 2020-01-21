@@ -93,7 +93,7 @@ impl super::Shape for Image {
 
             let tex_dims = Vec2::new(tex_dims.0, tex_dims.1);
 
-            self.size = tex_dims / dims.y * 2.0;
+            self.size *= tex_dims.y / dims.y * 2.0;
         }); 
 
         let vertex_buffer = glium::VertexBuffer::new(frame.display, RECT_VERTS)
