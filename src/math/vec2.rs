@@ -78,12 +78,34 @@ macro_rules! impl_op_ass {
 macro_rules! impl_float {
     ($float:ident) => {
         impl Vec2<$float> {
+            #[inline]
             pub fn magnitude(self) -> $float {
                 (self.x * self.x + self.y * self.y).sqrt()
             }
 
+            #[inline]
+            pub fn magnitude_squared(self) -> $float {
+                self.x * self.x + self.y * self.y
+            }
+
+            #[inline]
             pub fn normalize(self) -> Vec2<$float> {
                 self / self.magnitude()
+            }
+
+            #[inline]
+            pub fn from_radians(angle: $float) -> Vec2<$float> {
+                Vec2::new(angle.cos(), angle.sin())
+            }
+
+            #[inline]
+            pub fn dot(self, other: Self) -> $float {
+                self.x * other.x + self.y * other.y
+            }
+
+            #[inline]
+            pub fn project(self, other: Self) -> Self {
+                other * self.dot(other) / other.magnitude_squared()
             }
         }
     };

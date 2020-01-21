@@ -1,5 +1,6 @@
 use super::FontTexture;
 use super::TextInput;
+use super::math::*;
 use std::io::Read;
 use glium::texture::texture2d::Texture2d;
 use std::collections::HashMap;
@@ -24,7 +25,7 @@ impl<'s> Loader<'s> {
         self.fonts.insert(path.into(), font_texture);
     }
 
-    pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat)
+    pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat) -> Vec2<f32>
         where P: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
     {
         let mut buf = Vec::new();
@@ -44,6 +45,8 @@ impl<'s> Loader<'s> {
             .expect("GUI::IMAGE Failed to create texture buffer");
 
         self.images.insert(path.into(), texture);
+
+        Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
     }
 
     pub fn text_input(&mut self) -> TextInput {

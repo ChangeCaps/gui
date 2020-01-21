@@ -67,8 +67,8 @@ impl<'s> LineBuilder<'s> {
 impl super::Shape for Line {
     fn draw(&mut self, frame: &mut Frame) {
         frame.pixel_window_dimensions.map(|dims| { 
-            self.p0 /= dims.y;  
-            self.p1 /= dims.y;  
+            self.p0 /= dims.y / 2.0;
+            self.p1 /= dims.y / 2.0;
 
             self.width /= dims.y;
         });
