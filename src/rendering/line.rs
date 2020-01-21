@@ -66,6 +66,13 @@ impl<'s> LineBuilder<'s> {
 
 impl super::Shape for Line {
     fn draw(&mut self, frame: &mut Frame) {
+        frame.pixel_window_dimensions.map(|dims| { 
+            self.p0 /= dims.y;  
+            self.p1 /= dims.y;  
+
+            self.width /= dims.y;
+        });
+
         let a = (self.p1 - self.p0).normalize();
         
         let mut v0 = Vec2::new(a.y, -a.x) * self.width + self.p0;
