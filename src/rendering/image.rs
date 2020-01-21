@@ -49,7 +49,7 @@ impl<'s> ImageBuilder<'s> {
         Self {
             image,
             position: Vec2::new(0.0, 0.0),
-            size: Vec2::new(0.2 * dimension_ratio, 0.2),
+            size: Vec2::new(1.0 * dimension_ratio, 1.0),
             rotation: 0.0,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
