@@ -81,7 +81,7 @@ impl super::Shape for Rect {
         let uniforms = uniform!{
             pos: self.position.as_array(),
             size: self.size.as_array(),
-            rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
+            rotation: Mat2::<f32>::from_radians(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
             aspect_ratio: frame.aspect_ratio,
