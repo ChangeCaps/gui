@@ -7,10 +7,8 @@ struct TextExample {
     text_input: TextInput,
 }
 
-impl SimpleState for TextExample {
+impl State for TextExample {
     fn draw(&mut self, frame: &mut Frame, data: &StateData) {
-        frame.clear();
-
         frame.rect()
             .size(Vec2::new(0.7, 0.2))
             .color(color::rgb(0.7, 0.3, 0.2))

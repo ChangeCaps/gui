@@ -33,7 +33,6 @@ pub struct Rect {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    depth: f32,
 }
 
 impl<'s> RectBuilder<'s> {
@@ -60,7 +59,6 @@ impl<'s> RectBuilder<'s> {
             anchor: self.anchor,
             pivot: self.pivot,
             scaling: self.scaling,
-            depth: self.depth,
         }), self.depth))
     }
 }

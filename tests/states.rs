@@ -5,7 +5,7 @@ use gui::*;
 struct Push;
 
 impl State for Push {
-    fn draw(&mut self, _frame: Frame, _state_data: StateData) -> Transition {
+    fn update(&mut self, _: &StateData) -> Transition {
         println!("Pushing State");
 
         Transition::Push(Box::new(Trans))
@@ -15,7 +15,7 @@ impl State for Push {
 struct Trans;
 
 impl State for Trans {
-    fn draw(&mut self, _frame: Frame, _state_data: StateData) -> Transition {
+    fn update(&mut self, _: &StateData) -> Transition {
         println!("Transitioning State");
         Transition::Trans(Box::new(Pop))
     }
@@ -24,7 +24,7 @@ impl State for Trans {
 struct Pop;
 
 impl State for Pop {
-    fn draw(&mut self, _frame: Frame, _state_data: StateData) -> Transition {
+    fn update(&mut self, _: &StateData) -> Transition {
         println!("Popping State");
         Transition::Pop
     }

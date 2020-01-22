@@ -395,16 +395,15 @@ impl Application {
                 _ => return,
             } 
 
-            // state data 
+            // create frame buffer for first draw
             let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::new(&display, 
                                                                               &texture_buffer).unwrap(); 
-
-            frame_buffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
+            frame_buffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0); // clear that frame buffer
    
 
             // calculate delta-time
             let delta_time = Instant::now().duration_since(last_frame);
-            last_frame = Instant::now();
+            last_frame = Instant::now(); // reset last frame
 
             // crate state data
             let state_data = StateData {
@@ -423,10 +422,11 @@ impl Application {
                 mouse_buttons_released: &mouse_buttons_released,
             };  
 
+            // get a frame for drawing to the window and clear it
             let mut frame = display.draw();
-
             frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
 
+            // calculate the index of the current state
             let index = states.len() - 1;
         
             let (w, h, aspect_ratio) = if let Some(size) = self.pixel_window_size {
@@ -439,30 +439,33 @@ impl Application {
             let trans = {
                 let mut _frame = Frame { 
                     images: &images,
-                    fonts: &fonts,
                     shapes: Vec::new(),
                 };
+                
+                // run update for current state
+                let trans = states[index].update(&state_data);
     
+                // run shadow update for all states
+                states.iter_mut().for_each(|state| state.shadow_update(&state_data));
+    
+                // run draw for current state
                 states[index].draw(
                     &mut _frame,
                     &state_data,
                 );
     
+                // run shadow draw for all states
                 states.iter_mut().for_each(|debris| debris.shadow_draw(
                     &mut _frame,
                     &state_data,
                 ));
-
-                let trans = states[index].update(&state_data);
     
-                states.iter_mut().for_each(|state| state.shadow_update(&state_data));
-    
-                let mut shapes = std::mem::replace(&mut _frame.shapes, Vec::new());
-    
+                // sort shapes by depth
                 if self.depth_sorting {
-                    shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
+                    _frame.shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
                 }
     
+                // construct drawing data
                 let mut drawing_data = DrawingData {
                     frame: &mut frame_buffer,
                     simple_transform_fill: &simple_transform_fill,
@@ -480,10 +483,12 @@ impl Application {
                     fonts: &fonts,
                 };
 
-                shapes.iter_mut().for_each(|(shape, _)| {
+                // draw shapes
+                _frame.shapes.iter_mut().for_each(|(shape, _)| {
                     shape.draw(&mut drawing_data);
                 });
 
+                // uniforms for scaling draw call
                 let uniforms = uniform!{
                     size: [2.0f32, 2.0],
                     pivot: [0.5f32, 0.5],
@@ -495,6 +500,7 @@ impl Application {
                     fill_color: [1.0f32, 1.0, 1.0, 1.0]
                 };
 
+                // draw the frame buffer to the window and handle errors
                 let _ = frame.draw(&vertex_buffer,
                                    &index_buffer,
                                    &texture,
@@ -512,9 +518,9 @@ impl Application {
             //
 
             keys_pressed = HashSet::new();
-            mouse_buttons_pressed = HashSet::new();
-
             keys_released = HashSet::new();
+            
+            mouse_buttons_pressed = HashSet::new();
             mouse_buttons_released = HashSet::new();
 
             match trans {

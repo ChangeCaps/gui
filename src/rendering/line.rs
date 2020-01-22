@@ -26,7 +26,6 @@ pub struct Line {
     color: [f32; 4],
     anchor: Anchor,
     scaling: bool,
-    depth: f32,
 }
 
 impl<'s> LineBuilder<'s> {
@@ -57,7 +56,6 @@ impl<'s> LineBuilder<'s> {
             color: self.color,
             anchor: self.anchor,
             scaling: self.scaling,
-            depth: self.depth,
             smooth: self.smooth,
             width: self.width,
         }), self.depth))
