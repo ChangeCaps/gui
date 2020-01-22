@@ -490,6 +490,7 @@ impl Application {
 
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
+                    position: [0.0f32, 0.0],
                     size: [2.0f32, 2.0],
                     pivot: [0.5f32, 0.5],
                     rotation: [[1.0f32, 0.0], 
@@ -517,9 +518,11 @@ impl Application {
             // transition handling
             //
 
+            // reset keypressed and released
             keys_pressed = HashSet::new();
             keys_released = HashSet::new();
             
+            // reset mousepressed and released
             mouse_buttons_pressed = HashSet::new();
             mouse_buttons_released = HashSet::new();
 
