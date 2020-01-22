@@ -16,11 +16,13 @@ void main() {
     vec2 pixel_position = gl_FragCoord.xy/window_dimensions * 2.0 - 1.0;
 
     if (scale_aspect_ratio) {
-        position += anchor * scaled_aspect_ratio;
+        position.x += anchor.x * scaled_aspect_ratio;
+        position.y += anchor.y;
 
         pixel_position.x *= scaled_aspect_ratio;
     } else {
-        position += anchor * aspect_ratio;
+        position.x += anchor.x * scaled_aspect_ratio;
+        position.y += anchor.y;
 
         pixel_position.x *= aspect_ratio;
     }

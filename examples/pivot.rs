@@ -1,6 +1,7 @@
 extern crate gui;
 
 use gui::*;
+use math::*;
 
 struct PivotExample {
 
@@ -25,6 +26,11 @@ impl State for PivotExample {
                 .rotation(45.0)
                 .draw();
         }
+
+        frame.ellipse()
+            .anchor(Anchor::TopLeft)
+            .size(Vec2::new(1.0, 1.0))
+            .draw();
     }
 }
 
