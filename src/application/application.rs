@@ -490,7 +490,7 @@ impl Application {
 
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
-                    position: [0.0f32, 0.0],
+                    pos: [0.0f32, 0.0],
                     size: [2.0f32, 2.0],
                     pivot: [0.5f32, 0.5],
                     rotation: [[1.0f32, 0.0], 
