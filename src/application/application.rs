@@ -180,7 +180,11 @@ impl Application {
 
         let window_dimensions_multiplier = buffer_dimensions / window_dimensions;
 
-        let aspect_ratio = self.aspect_ratio.unwrap_or(self.window_size.x as f32/self.window_size.y as f32);
+        let aspect_ratio = if let Some(size) = self.pixel_window_size {
+            size.x as f32 / size.y as f32
+        } else {
+            self.aspect_ratio.unwrap_or(self.window_size.x as f32/self.window_size.y as f32)
+        };
 
         // inputs
         
@@ -292,11 +296,10 @@ impl Application {
                             position.x as f32, 
                             position.y as f32
                         ) * window_dimensions_multiplier 
-                          / window_dimensions
-                          - 1.0) * if let Some(size) = self.pixel_window_size {
-                              size.y as f32
+                          / window_dimensions * 2.0 - 1.0) * if let Some(size) = self.pixel_window_size {
+                              size.y as f32 / 2.0
                           } else {
-                              0.0
+                              1.0
                           };
                         mouse_position.y = -mouse_position.y;
 
