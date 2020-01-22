@@ -19,6 +19,10 @@ impl State for PivotExample {
             .pivot(Anchor::BottomLeft)
             .draw();
 
+        frame.ellipse()
+            .size(Vec2::new(0.5, 0.5))
+            .draw();
+
         for _ in 0..1 {
             frame.rect()
                 .color(color::rgba(0.3, 0.7, 0.2, 1.0))
@@ -26,11 +30,6 @@ impl State for PivotExample {
                 .rotation(45.0)
                 .draw();
         }
-
-        frame.ellipse()
-            .anchor(Anchor::TopLeft)
-            .size(Vec2::new(1.0, 1.0))
-            .draw();
     }
 }
 
