@@ -13,8 +13,8 @@ pub struct TextBuilder<'s> {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    depth: f32,
     text: String,
+    depth: f32,
     shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
 }
 
@@ -27,7 +27,6 @@ pub struct Text {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    depth: f32,
     text: String,
 }
 
@@ -42,8 +41,8 @@ impl<'s> TextBuilder<'s> {
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
             scaling: false,
-            depth: 0.0,
             text: String::new(),
+            depth: 0.0,
             shape_vec
         }
     }
@@ -65,7 +64,6 @@ impl<'s> TextBuilder<'s> {
             anchor: self.anchor,
             pivot: self.pivot,
             scaling: self.scaling,
-            depth: self.depth,
             text: self.text,
             font: self.font,
         }), self.depth))
@@ -73,15 +71,15 @@ impl<'s> TextBuilder<'s> {
 }
 
 impl super::Shape for Text {
-    fn draw(&mut self, frame: &mut Frame) {
+    fn draw(&mut self, drawing_data: &mut DrawingData) {
         // don't draw if there is no text
         if self.text.len() == 0 {
             return;
         }
 
-        let font = frame.fonts.get(&self.font).unwrap();
+        let font = drawing_data.fonts.get(&self.font).unwrap();
 
-        frame.pixel_window_dimensions.map(|dims| {
+        drawing_data.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
             self.scale /= dims.y / 2.0;
         }); 
@@ -154,10 +152,10 @@ impl super::Shape for Text {
             }
         }
 
-        let vertex_buffer = glium::VertexBuffer::new(frame.display, &vertex_buffer_data)
+        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, &vertex_buffer_data)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
+        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
             .expect("failed to create index buffer");   
 
         // calculate pivot
@@ -171,30 +169,25 @@ impl super::Shape for Text {
             rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             pivot: pivot.as_array(),
-            aspect_ratio: frame.aspect_ratio,
-            scaled_aspect_ratio: frame.scaled_aspect_ratio,
+            aspect_ratio: drawing_data.aspect_ratio,
+            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: frame.window_dimensions.as_array(),
+            window_dimensions: drawing_data.window_dimensions.as_array(),
             fill_color: self.color,
             tex: glium::uniforms::Sampler(&font.texture, Default::default())
         };
 
         // enable alpha blending
         let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(),
-            depth: glium::Depth {
-                test: glium::DepthTest::IfMoreOrEqual,
-                write: true,
-                .. Default::default()
-            },
+            blend: glium::Blend::alpha_blending(), 
             .. Default::default()
         };
 
         // draw
-        frame.frame.draw(
+        drawing_data.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            frame.text,
+            drawing_data.text,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");

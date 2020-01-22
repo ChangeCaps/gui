@@ -6,10 +6,8 @@ struct PivotExample {
 
 }
 
-impl SimpleState for PivotExample {
+impl State for PivotExample {
     fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
-        frame.clear();
-
         frame.rect()
             .color(color::rgba(0.7, 0.3, 0.2, 0.3))
             .depth(0.5)
@@ -20,11 +18,13 @@ impl SimpleState for PivotExample {
             .pivot(Anchor::BottomLeft)
             .draw();
 
-        frame.rect()
-            .color(color::rgba(0.3, 0.7, 0.2, 1.0))
-            .pivot(Anchor::TopRight)
-            .rotation(45.0)
-            .draw();
+        for _ in 0..1000 {
+            frame.rect()
+                .color(color::rgba(0.3, 0.7, 0.2, 1.0))
+                .pivot(Anchor::TopRight)
+                .rotation(45.0)
+                .draw();
+        }
     }
 }
 
@@ -32,6 +32,7 @@ fn main() {
     Application::new()
         .with_title("Pivot Example")
         .with_window_size(1000, 800)
+        .with_depth_sorting(true)
         .run(|_loader| {
             Box::new(PivotExample {
 

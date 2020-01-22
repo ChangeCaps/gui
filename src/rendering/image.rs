@@ -36,7 +36,6 @@ pub struct Image {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    depth: f32,
 }
 
 impl<'s> ImageBuilder<'s> {
@@ -75,20 +74,19 @@ impl<'s> ImageBuilder<'s> {
             anchor: self.anchor,
             pivot: self.pivot,
             scaling: self.scaling,
-            depth: self.depth,
             image: self.image,
         }), self.depth))
     }
 }
 
 impl super::Shape for Image {
-    fn draw(&mut self, frame: &mut Frame) {
-        let image = frame.images.get(&self.image).unwrap();
+    fn draw(&mut self, drawing_data: &mut DrawingData) {
+        let image = drawing_data.images.get(&self.image).unwrap();
 
         let tex_dims = image.dimensions();
         let tex_dims = (tex_dims.0 as f32, tex_dims.1 as f32);
 
-        frame.pixel_window_dimensions.map(|dims| {
+        drawing_data.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
 
             let tex_dims = Vec2::new(tex_dims.0, tex_dims.1);
@@ -96,13 +94,13 @@ impl super::Shape for Image {
             self.size *= tex_dims.y / dims.y * 2.0;
         }); 
 
-        let vertex_buffer = glium::VertexBuffer::new(frame.display, RECT_VERTS)
+        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
+        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
-
         
+      
 
         let uniforms = uniform!{
             pos: self.position.as_array(),
@@ -110,29 +108,24 @@ impl super::Shape for Image {
             rotation: Mat2::<f32>::from_radians(self.rotation).as_array(),
             anchor: self.anchor.as_vec().as_array(),
             pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
-            aspect_ratio: frame.aspect_ratio,
-            scaled_aspect_ratio: frame.scaled_aspect_ratio,
+            aspect_ratio: drawing_data.aspect_ratio,
+            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: frame.window_dimensions.as_array(),
+            window_dimensions: drawing_data.window_dimensions.as_array(),
             fill_color: self.color,
             texture_dimensions: tex_dims,
             tex: image,
         };
 
         let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(),
-            depth: glium::Depth {
-                test: glium::DepthTest::IfMoreOrEqual,
-                write: true,
-                .. Default::default()
-            },
+            blend: glium::Blend::alpha_blending(), 
             .. Default::default()
         };
 
-        frame.frame.draw(
+        drawing_data.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            frame.texture,
+            drawing_data.texture,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");

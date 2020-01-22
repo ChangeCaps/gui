@@ -30,6 +30,7 @@ pub struct Application {
     pub resizable: bool,
     pub window_size: Vec2<u32>,
     pub pixel_window_size: Option<Vec2<u32>>,
+    pub depth_sorting: bool,
 }
 
 impl Application {
@@ -41,6 +42,7 @@ impl Application {
             resizable: true,
             window_size: Vec2::new(800, 600),
             pixel_window_size: None,
+            depth_sorting: false,
         }
     }
 
@@ -71,6 +73,11 @@ impl Application {
 
     pub fn with_pixel_window_size(mut self, width: u32, height: u32) -> Application {
         self.pixel_window_size = Some(Vec2::new(width, height));
+        self
+    }
+
+    pub fn with_depth_sorting(mut self, depth_sorting: bool) -> Application {
+        self.depth_sorting = depth_sorting;
         self
     }
 
@@ -165,14 +172,13 @@ impl Application {
         let mut mouse_position = Vec2::new(0.0, 0.0);
         let mut scaled_mouse_position = Vec2::new(0.0, 0.0);
 
-        let window_dimensions_multiplier = {
-            let buffer_dimensions = display.get_framebuffer_dimensions();
-            let buffer_dimensions = Vec2::new(buffer_dimensions.0 as f32, buffer_dimensions.1 as f32);
+        let buffer_dimensions = display.get_framebuffer_dimensions();
+        let buffer_dimensions_u32 = Vec2::new(buffer_dimensions.0, buffer_dimensions.1);
+        let buffer_dimensions = Vec2::new(buffer_dimensions.0 as f32, buffer_dimensions.1 as f32);
 
-            let window_dimensions = Vec2::new(self.window_size.x as f32, self.window_size.y as f32);
+        let window_dimensions = Vec2::new(self.window_size.x as f32, self.window_size.y as f32);
 
-            buffer_dimensions / window_dimensions
-        };
+        let window_dimensions_multiplier = buffer_dimensions / window_dimensions;
 
         let aspect_ratio = self.aspect_ratio.unwrap_or(self.window_size.x as f32/self.window_size.y as f32);
 
@@ -204,19 +210,58 @@ impl Application {
 
         let mut states = vec![start(&mut loader)];
 
+        
+        // if pixel mode is set, there is no reason to keep remaking the frame buffer every frame
+        // therefore we make it now and clear it every frame which is considerably faster
+
+        let size = self.pixel_window_size.unwrap_or(buffer_dimensions_u32);
+
+        // create texture_buffer
+        let mut texture_buffer = glium::texture::texture2d::Texture2d::empty(
+            &display,
+            size.x, 
+            size.y
+        ).expect("failed to create texture buffer");
+
+
+        let vertex_buffer = {
+            use rendering::TextureVertex;
+
+            glium::VertexBuffer::new(&display, 
+                                     &[TextureVertex { position: [1.0, 1.0], texture_coords: [1.0, 1.0] },
+                                       TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
+                                       TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
+                                       TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] }])
+                .expect("failed to create vertex_buffer for drawing the frame_buffer to the screen")
+        };
+
+        let index_buffer = glium::IndexBuffer::new(&display, 
+                                                   glium::index::PrimitiveType::TrianglesList, 
+                                                   &[0u32, 1, 2, 1, 2, 3])
+            .expect("failed to crate index_buffer for drawing the frame_buffer to the screen");
+
         // used to ensure that we don't go above the desired frame rate
         let mut next_frame_time = Instant::now() + self.frame_time;
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
 
-        event_loop.run(move |event, _, flow| {
+        // main loop
+        event_loop.run(move |event, _, flow| { 
+            // if there are no states, close the application
+            if states.len() == 0 {
+                *flow = ControlFlow::Exit;
+
+                return;
+            } 
+
             // update next_frame_time
             if next_frame_time <= Instant::now() {
                 next_frame_time = Instant::now() + self.frame_time;
             }
 
-            // set ControlFlow
+            // set ControlFlow as to wait until the time for the next frame is reached before
+            // redrawing
             *flow = ControlFlow::WaitUntil(next_frame_time);
 
             // get window dimensions
@@ -226,26 +271,29 @@ impl Application {
             let w = dims.0 as f32;
             let h = dims.1 as f32;
             
+            // used for scaling shapes
             let scaled_aspect_ratio = w / h;
             
-            let frame_dimensions = Vec2::new(aspect_ratio, 1.0);
-            let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio, 1.0);
+            let frame_dimensions = Vec2::new(aspect_ratio * 2.0, 2.0);
+            let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio * 2.0, 2.0);
             let window_dimensions = Vec2::new(w, h);
 
             // event handling 
             match event {
                 Event::WindowEvent {event, ..} => match event {
+                    // if the window requests closing it, do so
                     WindowEvent::CloseRequested => {
                         *flow = ControlFlow::Exit;
                         return;
                     },
+                    // update cursor position when it is moved
                     WindowEvent::CursorMoved {position, ..} => {
                         mouse_position = (Vec2::new(
                             position.x as f32, 
                             position.y as f32
                         ) * window_dimensions_multiplier 
                           / window_dimensions 
-                          * 2.0 - 1.0) * if let Some(size) = self.pixel_window_size {
+                          - 1.0) * if let Some(size) = self.pixel_window_size {
                               size.y as f32 / 2.0
                           } else {
                               0.0
@@ -259,6 +307,7 @@ impl Application {
 
                         return;
                     },
+                    // record keyboard inputs
                     WindowEvent::KeyboardInput {input, ..} => {
                         match input.state {
                             ElementState::Pressed => {
@@ -277,6 +326,7 @@ impl Application {
                         
                         return;
                     },
+                    // record mouse inputs
                     WindowEvent::MouseInput {button, state, ..} => {
                         match state {
                             ElementState::Pressed => {
@@ -292,31 +342,47 @@ impl Application {
                         return;
                     },
                     WindowEvent::ReceivedCharacter(c) => { 
+                        // go through each text inputs and modify their text according to the given
+                        // character input
                         text_inputs.iter_mut().for_each(|input| {
+                            // since the inputs are of the type Rc<RefCell<(String, bool)>> we need
+                            // to use borrow_mut to mutate it
+                            let mut s = input.borrow_mut();
+
+                            // if the text input is not reading, do not modify its text
+                            if !s.1 {
+                                return;
+                            }
+
                             match c as u8 {
+                                // ignore carriage returns
                                 13 => {
                                     
                                 },
+                                // in the case of backspace pop a character from the text
                                 08 => {
-                                    let mut s = input.borrow_mut();
-
                                     s.0.pop();
                                 },
-                                _ => {
-                                    let mut s = input.borrow_mut();
-     
-                                    if true {
-                                        s.0.push(c);
-                                    }
+                                // default to pushing the character to the text
+                                _ => {    
+                                    s.0.push(c);
                                 }
                             }
                         });                        
 
                         return;
-                    }
+                    },
+                    WindowEvent::Resized(size) => {
+                        texture_buffer = glium::texture::texture2d::Texture2d::empty(
+                            &display,
+                            size.width as u32,
+                            size.height as u32,
+                        ).expect("failed to create texture buffer for resized window");
+                    },
                     _ => return,
                 }, 
                 Event::NewEvents(cause) => match cause {
+                    // update the screen if the time limit is reached
                     StartCause::ResumeTimeReached { .. } => (),
                     StartCause::Init => (),
                     _ => return,
@@ -324,7 +390,12 @@ impl Application {
                 _ => return,
             } 
 
-            // state data
+            // state data 
+            let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::new(&display, 
+                                                                              &texture_buffer).unwrap(); 
+
+            frame_buffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
+   
 
             // calculate delta-time
             let delta_time = Instant::now().duration_since(last_frame);
@@ -345,18 +416,11 @@ impl Application {
                 mouse_buttons_pressed: &mouse_buttons_pressed,
                 mouse_buttons_held: &mouse_buttons_held,
                 mouse_buttons_released: &mouse_buttons_released,
-            };
+            };  
 
             let mut frame = display.draw();
 
             frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
-
-            if states.len() == 0 {
-                frame.finish()
-                    .expect("GUI::APPLICATION Failed to finish frame");
-
-                return;
-            }
 
             let index = states.len() - 1;
         
@@ -365,87 +429,75 @@ impl Application {
             } else {
                 (dims.0, dims.1, aspect_ratio)
             };
-
-            
-            // create texture_buffer
-            let texture_buffer = glium::texture::texture2d::Texture2d::empty_with_format(
-                &display,
-                glium::texture::UncompressedFloatFormat::U8U8U8U8,
-                glium::texture::MipmapsOption::NoMipmap,
-                w, 
-                h
-            ).expect("failed to create texture buffer");
-                
-            let depth_buffer = glium::framebuffer::DepthRenderBuffer::new(
-                &display,
-                glium::texture::DepthFormat::F32,
-                w,
-                h
-            ).expect("failed to create depth buffer");
-
-            // create frame_buffer
-            let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&display, &texture_buffer, &depth_buffer)
-                .expect("failed to create framebuffer");
-
-            frame_buffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
           
-            let mut f = Frame {
-                frame: &mut frame_buffer,
-                simple_transform_fill: &simple_transform_fill,
-                simple_transform_ellipse: &simple_transform_ellipse,
-                no_transform_line: &no_transform_line,
-                texture: &texture,
-                display: &display,
-                text: &text,
-                window_dimensions: Vec2::new(w as f32, h as f32),
-                pixel_window_dimensions: self.pixel_window_size.map(|x| Vec2::new(x.x as f32, x.y as f32)),
-                aspect_ratio,
-                scaled_aspect_ratio,
-                images: &images,
-                fonts: &fonts,
-                shapes: Vec::new(),
+            // run state functions
+            let trans = {
+                let mut _frame = Frame { 
+                    images: &images,
+                    fonts: &fonts,
+                    shapes: Vec::new(),
+                };
+    
+                states[index].draw(
+                    &mut _frame,
+                    &state_data,
+                );
+    
+                states.iter_mut().for_each(|debris| debris.shadow_draw(
+                    &mut _frame,
+                    &state_data,
+                ));
+
+                let trans = states[index].update(&state_data);
+    
+                states.iter_mut().for_each(|state| state.shadow_update(&state_data));
+    
+                let mut shapes = std::mem::replace(&mut _frame.shapes, Vec::new());
+    
+                if self.depth_sorting {
+                    shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
+                }
+    
+                let mut drawing_data = DrawingData {
+                    frame: &mut frame_buffer,
+                    simple_transform_fill: &simple_transform_fill,
+                    simple_transform_ellipse: &simple_transform_ellipse,
+                    no_transform_line: &no_transform_line,
+                    texture: &texture,
+                    display: &display,
+                    text: &text,
+                    window_dimensions: Vec2::new(w as f32, h as f32),
+                    pixel_window_dimensions: 
+                        self.pixel_window_size.map(|x| Vec2::new(x.x as f32, x.y as f32)),
+                    aspect_ratio,
+                    scaled_aspect_ratio,
+                    images: &images,
+                    fonts: &fonts,
+                };
+
+                shapes.iter_mut().for_each(|(shape, _)| {
+                    shape.draw(&mut drawing_data);
+                });
+
+                let uniforms = uniform!{
+                    size: [2.0f32, 2.0],
+                    pivot: [0.5f32, 0.5],
+                    rotation: [[1.0f32, 0.0], 
+                               [0.0,    1.0]],
+                    aspect_ratio: 1.0f32,
+                    texture_dimensions: window_dimensions.as_array(),
+                    tex: &texture_buffer,
+                    fill_color: [1.0f32, 1.0, 1.0, 1.0]
+                };
+
+                let _ = frame.draw(&vertex_buffer,
+                                   &index_buffer,
+                                   &texture,
+                                   &uniforms,
+                                   &Default::default());
+   
+                trans
             };
-
-            states.iter_mut().for_each(|state| state.draw(
-                &mut f,
-                &state_data,
-            ));
-
-            let mut shapes = std::mem::replace(&mut f.shapes, Vec::new());
-
-            shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
-
-            shapes.iter_mut().for_each(|(shape, _)| {
-                shape.draw(&mut f);
-            });
-
-            let dest_texture_buffer = glium::texture::texture2d::Texture2d::empty_with_format(
-                &display,
-                glium::texture::UncompressedFloatFormat::U8U8U8U8,
-                glium::texture::MipmapsOption::NoMipmap,
-                dims.0, 
-                dims.1
-            ).expect("failed to create texture buffer");
-
-            let dest_depth_buffer = glium::framebuffer::DepthRenderBuffer::new(
-                &display,
-                glium::texture::DepthFormat::F32,
-                dims.0,
-                dims.1
-            ).expect("failed to create depth buffer");
-
-            let dest_frame_buffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(&display, &dest_texture_buffer, &dest_depth_buffer)
-            .expect("failed to create framebuffer");
-
-            f.frame.fill(
-                &dest_frame_buffer,
-                glium::uniforms::MagnifySamplerFilter::Nearest,
-            );
-
-            dest_frame_buffer.fill(
-                &frame,
-                glium::uniforms::MagnifySamplerFilter::Nearest,
-            );
 
             frame.finish()
                 .expect("GUI::APPLICATION Failed to finish frame");
@@ -453,10 +505,6 @@ impl Application {
             // 
             // transition handling
             //
-
-            let trans = states[index].update(&state_data);
-
-            states.iter_mut().for_each(|state| state.shadow_update(&state_data));
 
             keys_pressed = HashSet::new();
             mouse_buttons_pressed = HashSet::new();

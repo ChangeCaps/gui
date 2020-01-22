@@ -13,6 +13,8 @@ pub use ellipse::*;
 pub use self::image::*;
 pub use text::*;
 
+use crate::drawing_data::*;
+
 #[derive(Clone, Copy, Debug)]
 struct Vertex {
     pub position: [f32; 2],
@@ -25,7 +27,7 @@ pub(crate) struct TextureVertex {
 }
 
 pub trait Shape {
-    fn draw<'f>(&mut self, frame: &mut super::Frame<'f>);
+    fn draw<'f>(&mut self, drawing_data: &mut DrawingData<'f>);
 }
 
 glium::implement_vertex!(Vertex, position);

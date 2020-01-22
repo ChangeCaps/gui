@@ -12,6 +12,7 @@ pub mod rendering;
 mod loader;
 mod font;
 mod text_input;
+pub(crate) mod drawing_data;
 
 pub type KeyCode = glium::glutin::event::VirtualKeyCode;
 
@@ -27,3 +28,4 @@ pub use loader::*;
 pub use font::*;
 pub use glium::glutin::event::MouseButton;
 pub use text_input::*;
+pub(crate) use drawing_data::*;

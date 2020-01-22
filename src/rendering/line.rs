@@ -65,8 +65,8 @@ impl<'s> LineBuilder<'s> {
 }
 
 impl super::Shape for Line {
-    fn draw(&mut self, frame: &mut Frame) {
-        frame.pixel_window_dimensions.map(|dims| { 
+    fn draw(&mut self, drawing_data: &mut DrawingData) {
+        drawing_data.pixel_window_dimensions.map(|dims| { 
             self.p0 /= dims.y / 2.0;
             self.p1 /= dims.y / 2.0;
 
@@ -94,10 +94,10 @@ impl super::Shape for Line {
             Vertex{ position: v3.as_array()},
         ];
 
-        let vertex_buffer = glium::VertexBuffer::new(frame.display, verts)
+        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, verts)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(frame.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
+        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
 
         let uniforms = uniform!{
@@ -105,27 +105,22 @@ impl super::Shape for Line {
             p1: self.p1.as_array(),
             width: self.width,
             anchor: self.anchor.as_vec().as_array(),
-            aspect_ratio: frame.aspect_ratio,
-            scaled_aspect_ratio: frame.scaled_aspect_ratio,
+            aspect_ratio: drawing_data.aspect_ratio,
+            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
             scale_aspect_ratio: self.scaling,
-            window_dimensions: frame.window_dimensions.as_array(),
+            window_dimensions: drawing_data.window_dimensions.as_array(),
             fill_color: self.color,
         };
 
         let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(),
-            depth: glium::Depth {
-                test: glium::DepthTest::IfMoreOrEqual,
-                write: true,
-                .. Default::default()
-            },
+            blend: glium::Blend::alpha_blending(), 
             .. Default::default()
         };
 
-        frame.frame.draw(
+        drawing_data.frame.draw(
             &vertex_buffer, 
             &index_buffer, 
-            frame.no_transform_line,
+            drawing_data.no_transform_line,
             &uniforms,
             &draw_params,
         ).expect("failed to draw rect");
