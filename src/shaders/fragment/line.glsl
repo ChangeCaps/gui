@@ -29,13 +29,17 @@ void main() {
     vec2 position = gl_FragCoord.xy/window_dimensions * 2.0 - 1.0;
 
     if (scale_aspect_ratio) {
-        p0 += anchor * scaled_aspect_ratio;
-        p1 += anchor * scaled_aspect_ratio;
+        p0.x += anchor.x * scaled_aspect_ratio;
+        p0.y += anchor.y;
+        p1.x += anchor.x * scaled_aspect_ratio;
+        p1.y += anchor.y;
 
         position.x *= scaled_aspect_ratio;
     } else {
-        p0 += anchor * aspect_ratio;
-        p1 += anchor * aspect_ratio;
+        p0.x += anchor.x * aspect_ratio;
+        p0.y += anchor.y;
+        p1.x += anchor.x * aspect_ratio;
+        p1.y += anchor.y;
 
         position.x *= aspect_ratio;
     }
