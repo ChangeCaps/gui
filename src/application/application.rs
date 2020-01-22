@@ -292,7 +292,7 @@ impl Application {
                             position.x as f32, 
                             position.y as f32
                         ) * window_dimensions_multiplier 
-                          / window_dimensions / 2.0
+                          / window_dimensions * 2.0
                           - 1.0) * if let Some(size) = self.pixel_window_size {
                               size.y as f32 / 2.0
                           } else {
