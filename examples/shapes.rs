@@ -5,12 +5,10 @@ use math::*;
 
 struct ShapeExample;
 
-impl SimpleState for ShapeExample {
+impl State for ShapeExample {
     fn draw(&mut self, frame: &mut Frame, state_data: &StateData) {
-        frame.clear();
-
         {
-            let p0 = Vec2::new(state_data.scaled_frame_dimensions.x - 0.2, -state_data.mouse_position.y);
+            let p0 = Vec2::new(state_data.scaled_frame_dimensions.x / 2.0 - 0.2, -state_data.mouse_position.y);
             let p1 = state_data.scaled_mouse_position;
 
             frame.line()

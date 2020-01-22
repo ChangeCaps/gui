@@ -376,11 +376,13 @@ impl Application {
                         return;
                     },
                     WindowEvent::Resized(size) => {
-                        texture_buffer = glium::texture::texture2d::Texture2d::empty(
-                            &display,
-                            size.width as u32,
-                            size.height as u32,
-                        ).expect("failed to create texture buffer for resized window");
+                        if self.pixel_window_size.is_none() {
+                            texture_buffer = glium::texture::texture2d::Texture2d::empty(
+                                &display,
+                                size.width as u32,
+                                size.height as u32,
+                            ).expect("failed to create texture buffer for resized window");
+                        }
                     },
                     _ => return,
                 }, 
@@ -488,7 +490,7 @@ impl Application {
                     rotation: [[1.0f32, 0.0], 
                                [0.0,    1.0]],
                     aspect_ratio: 1.0f32,
-                    texture_dimensions: window_dimensions.as_array(),
+                    texture_dimensions: [w as f32, h as f32],
                     tex: &texture_buffer,
                     fill_color: [1.0f32, 1.0, 1.0, 1.0]
                 };
