@@ -75,7 +75,8 @@ impl super::Shape for Rect {
         let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
+        let index_buffer = glium::IndexBuffer::new(drawing_data.display, 
+                                                   glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
             .expect("failed to create index buffer");
 
         let uniforms = uniform!{

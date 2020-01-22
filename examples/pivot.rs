@@ -6,7 +6,7 @@ struct PivotExample {
 
 }
 
-impl State for PivotExample {
+impl State for PivotExample { 
     fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
         frame.rect()
             .color(color::rgba(0.7, 0.3, 0.2, 0.3))
@@ -18,7 +18,7 @@ impl State for PivotExample {
             .pivot(Anchor::BottomLeft)
             .draw();
 
-        for _ in 0..1000 {
+        for _ in 0..1 {
             frame.rect()
                 .color(color::rgba(0.3, 0.7, 0.2, 1.0))
                 .pivot(Anchor::TopRight)
