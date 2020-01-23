@@ -487,6 +487,7 @@ impl Application {
                 let uniforms = uniform!{
                     pos: [0.0f32, 0.0],
                     size: [2.0f32, 2.0],
+                    anchor: [0.0f32, 0.0],
                     pivot: [0.5f32, 0.5],
                     rotation: [[1.0f32, 0.0], 
                                [0.0,    1.0]],

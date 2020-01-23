@@ -83,7 +83,7 @@ impl super::Shape for Image {
         let mut size = if let Some(size) = self.size {
             size
         } else {
-            Vec2::new(self.scale, 1.0)
+            Vec2::new(tex_dims.0/tex_dims.1, 1.0) * self.scale
         };
 
         // transform some variable if pixel mode
