@@ -25,3 +25,4 @@ create_impl!(smooth, bool);
 create_impl!(width, f32);
 create_impl!(scale, f32);
 create_impl!(depth, f32);
+create_impl!(pixel_mode, bool);

@@ -82,6 +82,7 @@ pub struct FrameDrawerBuilder<'f> {
     depth: f32,
     parent_frame: &'f mut Frame,
     shapes: Shapes,
+    pixel_mode: bool,
 }
 
 pub struct FrameDrawer {
@@ -95,6 +96,7 @@ pub struct FrameDrawer {
     pivot: Anchor,
     scaling: bool,
     shapes: Vec<(Box<dyn Shape>, f32)>,
+    pixel_mode: bool,
 }
 
 impl<'s> FrameDrawerBuilder<'s> {
@@ -111,8 +113,14 @@ impl<'s> FrameDrawerBuilder<'s> {
             scaling: false,
             depth: 0.0,
             parent_frame: frame,
-            shapes
+            shapes,
+            pixel_mode: false,
         }
+    }
+
+    pub fn size(mut self, size: Vec2<f32>) -> Self {
+        self.size = Some(size);
+        self
     }
 
     pub fn draw(self) {
@@ -127,6 +135,7 @@ impl<'s> FrameDrawerBuilder<'s> {
             pivot: self.pivot,
             scaling: self.scaling,
             shapes: self.shapes,
+            pixel_mode: self.pixel_mode,
         }), self.depth))
     }
 }
@@ -158,7 +167,7 @@ impl Shape for FrameDrawer {
             aspect_ratio: self.dimensions.x as f32 / self.dimensions.y as f32,
             scaled_aspect_ratio: self.dimensions.x as f32 / self.dimensions.y as f32,
             window_dimensions: dimensions,
-            pixel_window_dimensions: None,
+            pixel_window_dimensions: if self.pixel_mode { Some(dimensions) } else { None },
             .. *drawing_data
         };
 
@@ -210,3 +219,4 @@ pivot!(FrameDrawerBuilder);
 scaling!(FrameDrawerBuilder);
 depth!(FrameDrawerBuilder);
 scale!(FrameDrawerBuilder);
+pixel_mode!(FrameDrawerBuilder);

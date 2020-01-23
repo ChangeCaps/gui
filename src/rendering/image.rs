@@ -56,6 +56,11 @@ impl<'s> ImageBuilder<'s> {
         }
     }
 
+    pub fn size(mut self, size: Vec2<f32>) -> Self {
+        self.size = Some(size);
+        self
+    }
+
     pub fn draw(self) {
         self.shape_vec.push((Box::new(Image {
             position: self.position,
