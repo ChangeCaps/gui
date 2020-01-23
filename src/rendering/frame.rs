@@ -123,6 +123,11 @@ impl<'s> FrameDrawerBuilder<'s> {
         self
     }
 
+    pub fn dimensions(mut self, dimensions: Vec2<u32>) -> Self {
+        self.dimensions = dimensions;
+        self
+    }
+
     pub fn draw(self) {
         self.parent_frame.shapes.push((Box::new(FrameDrawer {
             position: self.position,
@@ -185,7 +190,7 @@ impl Shape for FrameDrawer {
             pos: self.position.as_array(),
             size: size.as_array(),
             rotation: Mat2::<f32>::from_radians(self.rotation).as_array(),
-            anchor: (self.anchor.as_vec() / 2.0).as_array(),
+            anchor: (self.anchor.as_vec()).as_array(),
             pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
             aspect_ratio: drawing_data.aspect_ratio,
             scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,

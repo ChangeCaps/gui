@@ -20,7 +20,7 @@ impl State for ImageExample {
             .draw();
         
         frame.draw_frame(f)
-            .anchor(Anchor::TopRight)
+            .anchor(Anchor::TopLeft)
             .draw();
 
         self.x += _state_data.delta_time * 0.01;
@@ -31,6 +31,7 @@ fn main() {
     Application::new()
         .with_title("Image Example")
         .with_window_size(600, 400)
+        .with_pixel_window_size(300, 200)
         .run(|loader| {
             loader.load_image("assets/test_image.png", PNG);
 
