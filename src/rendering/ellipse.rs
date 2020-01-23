@@ -90,7 +90,7 @@ impl super::Shape for Ellipse {
             .. Default::default()
         };
 
-        drawing_data.frame.draw(
+        drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
             &index_buffer, 
             drawing_data.simple_transform_ellipse,

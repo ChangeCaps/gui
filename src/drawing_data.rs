@@ -8,7 +8,7 @@ use glium::texture::texture2d::Texture2d;
 use std::collections::HashMap;
 
 pub struct DrawingData<'d> {
-    pub(crate) frame: &'d mut glium::framebuffer::SimpleFrameBuffer<'d>,
+    pub(crate) frame: &'d mut glium::texture::texture2d::Texture2d,
     pub(crate) simple_transform_fill: &'d Program,
     pub(crate) simple_transform_ellipse: &'d Program,
     pub(crate) no_transform_line: &'d Program,

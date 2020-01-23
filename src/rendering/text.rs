@@ -184,7 +184,7 @@ impl super::Shape for Text {
         };
 
         // draw
-        drawing_data.frame.draw(
+        drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
             &index_buffer, 
             drawing_data.text,

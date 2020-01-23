@@ -115,7 +115,7 @@ impl super::Shape for Line {
             .. Default::default()
         };
 
-        drawing_data.frame.draw(
+        drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
             &index_buffer, 
             drawing_data.no_transform_line,

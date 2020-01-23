@@ -4,14 +4,14 @@ use math::*;
 use glium;
 use glium::Surface;
 
-static RECT_VERTS: &[Vertex] = &[
+const RECT_VERTS: &[Vertex] = &[
     Vertex { position: [1.0, 1.0] },
     Vertex { position: [0.0, 1.0] },
     Vertex { position: [1.0, 0.0] },
     Vertex { position: [0.0, 0.0] },
 ];
 
-static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
+const RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
 
 pub struct RectBuilder<'s> {
     position: Vec2<f32>,
@@ -95,7 +95,7 @@ impl super::Shape for Rect {
             .. Default::default()
         };
 
-        drawing_data.frame.draw(
+        drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
             &index_buffer, 
             drawing_data.simple_transform_fill,

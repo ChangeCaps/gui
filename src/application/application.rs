@@ -395,12 +395,6 @@ impl Application {
                 _ => return,
             } 
 
-            // create frame buffer for first draw
-            let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::new(&display, 
-                                                                              &texture_buffer).unwrap(); 
-            frame_buffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0); // clear that frame buffer
-   
-
             // calculate delta-time
             let delta_time = Instant::now().duration_since(last_frame);
             last_frame = Instant::now(); // reset last frame
@@ -438,7 +432,6 @@ impl Application {
             // run state functions
             let trans = {
                 let mut _frame = Frame { 
-                    images: &images,
                     shapes: Vec::new(),
                 };
                 
@@ -465,9 +458,11 @@ impl Application {
                     _frame.shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
                 }
     
+                texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0);
+
                 // construct drawing data
                 let mut drawing_data = DrawingData {
-                    frame: &mut frame_buffer,
+                    frame: &mut texture_buffer,
                     simple_transform_fill: &simple_transform_fill,
                     simple_transform_ellipse: &simple_transform_ellipse,
                     no_transform_line: &no_transform_line,
