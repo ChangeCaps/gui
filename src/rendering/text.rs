@@ -155,9 +155,6 @@ impl super::Shape for Text {
         let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, &vertex_buffer_data)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
-            .expect("failed to create index buffer");   
-
         // calculate pivot
         let mut pivot = self.pivot.as_vec()/2.0 + 0.5;
         pivot.x *= total_text_width;
@@ -186,7 +183,7 @@ impl super::Shape for Text {
         // draw
         drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
-            &index_buffer, 
+            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.text,
             &uniforms,
             &draw_params,

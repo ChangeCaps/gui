@@ -239,11 +239,6 @@ impl Application {
                 .expect("failed to create vertex_buffer for drawing the frame_buffer to the screen")
         };
 
-        let index_buffer = glium::IndexBuffer::new(&display, 
-                                                   glium::index::PrimitiveType::TrianglesList, 
-                                                   &[0u32, 1, 2, 1, 2, 3])
-            .expect("failed to crate index_buffer for drawing the frame_buffer to the screen");
-
         // used to ensure that we don't go above the desired frame rate
         let mut next_frame_time = Instant::now() + self.frame_time;
 
@@ -499,7 +494,7 @@ impl Application {
 
                 // draw the frame buffer to the window and handle errors
                 let _ = frame.draw(&vertex_buffer,
-                                   &index_buffer,
+                                   &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
                                    &texture,
                                    &uniforms,
                                    &Default::default());

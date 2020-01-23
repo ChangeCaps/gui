@@ -4,8 +4,6 @@ use math::*;
 use glium;
 use glium::Surface;
 
-static RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
-
 pub struct LineBuilder<'s> {
     p0: Vec2<f32>,
     p1: Vec2<f32>,
@@ -95,9 +93,6 @@ impl super::Shape for Line {
         let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, verts)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
-            .expect("failed to create index buffer");
-
         let uniforms = uniform!{
             p0: self.p0.as_array(),
             p1: self.p1.as_array(),
@@ -117,7 +112,7 @@ impl super::Shape for Line {
 
         drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
-            &index_buffer, 
+            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.no_transform_line,
             &uniforms,
             &draw_params,

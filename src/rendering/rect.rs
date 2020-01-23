@@ -11,8 +11,6 @@ const RECT_VERTS: &[Vertex] = &[
     Vertex { position: [0.0, 0.0] },
 ];
 
-const RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
-
 pub struct RectBuilder<'s> {
     position: Vec2<f32>,
     size: Vec2<f32>,
@@ -73,10 +71,6 @@ impl super::Shape for Rect {
         let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(drawing_data.display, 
-                                                   glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
-            .expect("failed to create index buffer");
-
         let uniforms = uniform!{
             pos: self.position.as_array(),
             size: self.size.as_array(),
@@ -97,7 +91,7 @@ impl super::Shape for Rect {
 
         drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
-            &index_buffer, 
+            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.simple_transform_fill,
             &uniforms,
             &draw_params,

@@ -15,8 +15,6 @@ const RECT_VERTS: &[TextureVertex] = &[
     TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] },
 ];
 
-const RECT_INDECIES: &[u32] = &[0, 1, 2, 1, 2, 3];
-
 type Shapes = Vec<(Box<dyn Shape>, f32)>;
 
 pub trait Canvas {
@@ -183,9 +181,6 @@ impl Shape for FrameDrawer {
         let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
             .expect("failed to create vertex buffer");
 
-        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, RECT_INDECIES)
-            .expect("failed to create index buffer");
-
         let uniforms = uniform!{
             pos: self.position.as_array(),
             size: size.as_array(),
@@ -208,7 +203,7 @@ impl Shape for FrameDrawer {
 
         drawing_data.frame.as_surface().draw(
             &vertex_buffer, 
-            &index_buffer, 
+            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.texture,
             &uniforms,
             &draw_params,
