@@ -1,18 +1,7 @@
 use super::super::*;
-use super::TextureVertex;
 use math::*;
 use glium;
 use glium::Surface;
-
-static RECT_VERTS: &[TextureVertex] = &[
-    TextureVertex { position: [1.0, 1.0], texture_coords: [1.0, 1.0] },
-    TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
-    TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
-
-    TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
-    TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
-    TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] },
-];
 
 pub struct ImageBuilder<'s> {
     image: String,
@@ -101,9 +90,6 @@ impl super::Shape for Image {
             size *= tex_dims.y / dims.y * 2.0;
         }); 
 
-        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
-            .expect("failed to create vertex buffer");  
-
         let uniforms = uniform!{
             pos: self.position.as_array(),
             size: size.as_array(),
@@ -125,7 +111,7 @@ impl super::Shape for Image {
         };
 
         drawing_data.frame.as_surface().draw(
-            &vertex_buffer, 
+            &*drawing_data.vertex_buffer, 
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.texture,
             &uniforms,

@@ -228,7 +228,7 @@ impl Application {
         ).expect("failed to create texture buffer");
 
 
-        let vertex_buffer = {
+        let mut vertex_buffer = {
             use rendering::TextureVertex;
 
             glium::VertexBuffer::new(&display, 
@@ -461,6 +461,7 @@ impl Application {
                 // construct drawing data
                 let mut drawing_data = DrawingData {
                     frame: &mut texture_buffer,
+                    vertex_buffer: &mut vertex_buffer,
                     simple_transform_fill: &simple_transform_fill,
                     simple_transform_ellipse: &simple_transform_ellipse,
                     no_transform_line: &no_transform_line,

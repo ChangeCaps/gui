@@ -1,18 +1,7 @@
 use super::super::*;
-use super::Vertex;
 use math::*;
 use glium;
 use glium::Surface;
-
-const RECT_VERTS: &[Vertex] = &[
-    Vertex { position: [1.0, 1.0] },
-    Vertex { position: [0.0, 1.0] },
-    Vertex { position: [1.0, 0.0] },
-
-    Vertex { position: [0.0, 1.0] },
-    Vertex { position: [1.0, 0.0] },
-    Vertex { position: [0.0, 0.0] },
-];
 
 pub struct RectBuilder<'s> {
     position: Vec2<f32>,
@@ -71,9 +60,6 @@ impl super::Shape for Rect {
             self.size /= dims.y / 2.0;
         }); 
 
-        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
-            .expect("failed to create vertex buffer");
-
         let uniforms = uniform!{
             pos: self.position.as_array(),
             size: self.size.as_array(),
@@ -93,7 +79,7 @@ impl super::Shape for Rect {
         };
 
         drawing_data.frame.as_surface().draw(
-            &vertex_buffer, 
+            &*drawing_data.vertex_buffer, 
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.simple_transform_fill,
             &uniforms,

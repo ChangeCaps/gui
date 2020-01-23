@@ -8,16 +8,6 @@ use glium::{
 };
 use super::super::*;
 
-const RECT_VERTS: &[TextureVertex] = &[
-    TextureVertex { position: [1.0, 1.0], texture_coords: [1.0, 1.0] },
-    TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
-    TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
-
-    TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
-    TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
-    TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] },
-];
-
 type Shapes = Vec<(Box<dyn Shape>, f32)>;
 
 pub trait Canvas {
@@ -170,6 +160,7 @@ impl Shape for FrameDrawer {
 
         let mut data = DrawingData {
             frame: &mut texture_buffer,
+            vertex_buffer: &mut drawing_data.vertex_buffer,
             aspect_ratio: self.dimensions.x as f32 / self.dimensions.y as f32,
             scaled_aspect_ratio: self.dimensions.x as f32 / self.dimensions.y as f32,
             window_dimensions: dimensions,
@@ -180,9 +171,6 @@ impl Shape for FrameDrawer {
         self.shapes.iter_mut().for_each(|(shape, _)| {
             shape.draw(&mut data);
         });
-
-        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
-            .expect("failed to create vertex buffer");
 
         let uniforms = uniform!{
             pos: self.position.as_array(),
@@ -205,7 +193,7 @@ impl Shape for FrameDrawer {
         };
 
         drawing_data.frame.as_surface().draw(
-            &vertex_buffer, 
+            &*drawing_data.vertex_buffer, 
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.texture,
             &uniforms,
