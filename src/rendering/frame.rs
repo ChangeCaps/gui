@@ -151,7 +151,7 @@ impl Shape for FrameDrawer {
         let mut size = if let Some(size) = self.size {
             size
         } else {
-            Vec2::new(self.scale, 1.0)
+            Vec2::new(self.dimensions.x as f32 / self.dimensions.y as f32, 1.0) * self.scale
         };
 
         // transform some variable if pixel mode
