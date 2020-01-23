@@ -49,6 +49,24 @@ impl<'s> Loader<'s> {
         Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
     }
 
+    pub fn load_image_from_raw<I>(&mut self, data: &[u8], format: image::ImageFormat, ident: I) -> Vec2<f32> 
+        where I: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
+    {
+        let image = image::load(std::io::Cursor::new(data), format)
+            .expect(format!("GUI::IMAGE Failed to load image: {}", ident).as_str()).to_rgba();
+
+        let image_dimensions = image.dimensions();
+
+        let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+
+        let texture = Texture2d::new(self.display, image)
+            .expect("GUI::IMAGE Failed to create texture buffer");
+
+        self.images.insert(ident.into(), texture);
+
+        Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
+    }
+
     pub fn text_input(&mut self) -> TextInput {
         let cell = std::rc::Rc::new(std::cell::RefCell::new((String::new(), false)));
 
