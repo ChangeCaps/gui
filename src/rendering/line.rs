@@ -87,6 +87,9 @@ impl super::Shape for Line {
             Vertex{ position: v0.as_array()},
             Vertex{ position: v1.as_array()},
             Vertex{ position: v2.as_array()},
+            
+            Vertex{ position: v1.as_array()},
+            Vertex{ position: v2.as_array()},
             Vertex{ position: v3.as_array()},
         ];
 

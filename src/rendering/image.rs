@@ -8,6 +8,9 @@ static RECT_VERTS: &[TextureVertex] = &[
     TextureVertex { position: [1.0, 1.0], texture_coords: [1.0, 1.0] },
     TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
     TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
+
+    TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
+    TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
     TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] },
 ];
 

@@ -235,6 +235,9 @@ impl Application {
                                      &[TextureVertex { position: [1.0, 1.0], texture_coords: [1.0, 1.0] },
                                        TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
                                        TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
+                                       
+                                       TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
+                                       TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
                                        TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] }])
                 .expect("failed to create vertex_buffer for drawing the frame_buffer to the screen")
         };
@@ -494,7 +497,7 @@ impl Application {
 
                 // draw the frame buffer to the window and handle errors
                 let _ = frame.draw(&vertex_buffer,
-                                   &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
+                                   &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesListAdjacency), 
                                    &texture,
                                    &uniforms,
                                    &Default::default());
