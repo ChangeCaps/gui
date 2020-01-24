@@ -67,9 +67,6 @@ impl super::Shape for Ellipse {
             self.size /= dims.y / 2.0;
         }); 
 
-        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, RECT_VERTS)
-            .expect("failed to create vertex buffer");
-
         let uniforms = uniform!{
             pos: self.position.as_array(),
             size: self.size.as_array(),
@@ -89,7 +86,7 @@ impl super::Shape for Ellipse {
         };
 
         drawing_data.frame.as_surface().draw(
-            &vertex_buffer, 
+            &*drawing_data.vertex_buffer, 
             &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             drawing_data.simple_transform_ellipse,
             &uniforms,
