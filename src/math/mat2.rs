@@ -113,8 +113,9 @@ impl<I> Mul<Vec2<I>> for Mat2<I>
     type Output = Vec2<I>;
 
     fn mul(self, mut other: Vec2<I>) -> Self::Output {
-        other.x = ((other.x * self.data[0][0]).into() + (other.x * self.data[1][0]).into()).into();
-        other.y = ((other.y * self.data[0][1]).into() + (other.y * self.data[1][1]).into()).into();
+        let x = other.x;
+        other.x = ((other.x * self.data[0][0]).into() + (other.y * self.data[0][1]).into()).into();
+        other.y = ((x * self.data[1][0]).into() + (other.y * self.data[1][1]).into()).into();
 
         other
     }
@@ -128,8 +129,9 @@ impl<I> Mul<Mat2<I>> for Vec2<I>
     type Output = Vec2<I>;
 
     fn mul(mut self, other: Mat2<I>) -> Self::Output {
-        self.x = ((self.x * other.data[0][0]).into() + (self.x * other.data[1][0]).into()).into();
-        self.y = ((self.y * other.data[0][1]).into() + (self.y * other.data[1][1]).into()).into();
+        let x = self.x;
+        self.x = ((self.x * other.data[0][0]).into() + (self.y * other.data[0][1]).into()).into();
+        self.y = ((x * other.data[1][0]).into() + (self.y * other.data[1][1]).into()).into();
 
         self
     }

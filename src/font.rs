@@ -12,13 +12,11 @@ pub enum Error {
     NoGlyph(char),
 }
 
-pub struct FontTexture {
-    pub(crate) texture: glium::texture::Texture2d,
-    pub(crate) character_infos: HashMap<char, CharacterInfos>,
+pub struct FontTexture { 
 }
 
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct CharacterInfos {
+pub struct CharacterInfos {
     pub(crate) tex_coords: (f32, f32),
     pub(crate) tex_size: (f32, f32),
     pub(crate) size: (f32, f32),
@@ -58,7 +56,7 @@ impl FontTexture {
     /// **Avoid rasterizing everything at once as it will be slow and end up in
     /// out of memory abort.**
     pub fn new<R, F, I>(facade: &F, font: R, font_size: u32, characters_list: I)
-                        -> Result<FontTexture, Error>
+                        -> Result<(glium::texture::RawImage2d<f32>, HashMap<char, CharacterInfos>), Error>
         where R: Read, F: Facade, I: IntoIterator<Item=char>
     {
 
@@ -72,13 +70,14 @@ impl FontTexture {
         let (texture_data, chr_infos) =
             build_font_image(font, characters_list.into_iter(), font_size)?;
 
-        // we load the texture in the display
-        let texture = glium::texture::Texture2d::new(facade, &texture_data).unwrap();
+        // we load the texture in the displ
 
-        Ok(FontTexture {
-            texture: texture,
-            character_infos: chr_infos,
-        })
+        Ok((
+            glium::texture::RawImage2d::from_raw_rgba(texture_data.data, 
+                                                      (texture_data.width, 
+                                                       texture_data.height)),
+            chr_infos
+        ))
     }
 }
 

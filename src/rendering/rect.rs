@@ -1,9 +1,7 @@
 use super::super::*;
 use math::*;
-use glium;
-use glium::Surface;
 
-pub struct RectBuilder<'s> {
+pub struct Rect<'s> {
     position: Vec2<f32>,
     size: Vec2<f32>,
     rotation: f32,
@@ -12,21 +10,11 @@ pub struct RectBuilder<'s> {
     pivot: Anchor,
     scaling: bool,
     depth: f32,
-    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
+    drawing_data: &'s mut DrawingData,
 }
 
-pub struct Rect {
-    position: Vec2<f32>,
-    size: Vec2<f32>,
-    rotation: f32,
-    color: [f32; 4],
-    anchor: Anchor,
-    pivot: Anchor,
-    scaling: bool,
-}
-
-impl<'s> RectBuilder<'s> {
-    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>) -> Self {
+impl<'s> Rect<'s> {
+    pub fn new(data: &'s mut DrawingData) -> Self {
         Self {
             position: Vec2::new(0.0, 0.0),
             size: Vec2::new(0.2, 0.2),
@@ -36,64 +24,52 @@ impl<'s> RectBuilder<'s> {
             pivot: Anchor::Middle,
             scaling: false,
             depth: 0.0,
-            shape_vec
+            drawing_data: data,
         }
     }
-
-    pub fn draw(self) {
-        self.shape_vec.push((Box::new(Rect {
-            position: self.position,
-            size: self.size,
-            rotation: self.rotation,
-            color: self.color,
-            anchor: self.anchor,
-            pivot: self.pivot,
-            scaling: self.scaling,
-        }), self.depth))
-    }
-}
-
-impl super::Shape for Rect {
-    fn draw(&mut self, drawing_data: &mut DrawingData) {
-        drawing_data.pixel_window_dimensions.map(|dims| {
+    
+    pub fn draw(&mut self) {
+        self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
             self.size /= dims.y / 2.0;
         }); 
 
-        let uniforms = uniform!{
-            pos: self.position.as_array(),
-            size: self.size.as_array(),
-            rotation: Mat2::<f32>::from_radians(self.rotation).as_array(),
-            anchor: self.anchor.as_vec().as_array(),
-            pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
-            aspect_ratio: drawing_data.aspect_ratio,
-            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
-            scale_aspect_ratio: self.scaling,
-            window_dimensions: drawing_data.window_dimensions.as_array(),
-            fill_color: self.color,
-        };
+        for vert in &RECT_VERTS {
+            let mut position = *vert - self.pivot.as_vec() / 2.0;
 
-        let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(), 
-            .. Default::default()
-        };
+            position *= self.size; 
+            position *= Mat2::<f32>::from_radians(self.rotation);
+            position += self.position;
 
-        drawing_data.frame.as_surface().draw(
-            &*drawing_data.vertex_buffer, 
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
-            drawing_data.simple_transform_fill,
-            &uniforms,
-            &draw_params,
-        ).expect("failed to draw rect");
+            if self.scaling {
+                position.x /= self.drawing_data.scaled_aspect_ratio;
+            } else { 
+                position.x /= self.drawing_data.aspect_ratio;
+            }
+
+            position += self.anchor.as_vec();
+
+            self.drawing_data.verts.push(super::Vertex {
+                position: position.as_array(),
+                texture_coords: (*vert + 0.5).as_array(),
+                color: self.color,
+                depth: self.depth,
+                shape: 0,
+                index: self.drawing_data.rects,
+            });
+        }
+
+
+        self.drawing_data.rects += 1;
     }
 }
 
 
-position!(RectBuilder);
-size!(RectBuilder);
-rotation!(RectBuilder);
-color!(RectBuilder);
-anchor!(RectBuilder);
-pivot!(RectBuilder);
-scaling!(RectBuilder);
-depth!(RectBuilder);
+position!(Rect);
+size!(Rect);
+rotation!(Rect);
+color!(Rect);
+anchor!(Rect);
+pivot!(Rect);
+scaling!(Rect);
+depth!(Rect);

@@ -118,52 +118,7 @@ impl Application {
             None
         ).expect("GUI::INITIALIZATION Failed to load Simple Transform Fill shader");
 
-        #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION Simple Transform Fill program loaded");
 
-        let simple_transform_ellipse = Program::from_source(
-            &display, 
-            include_str!("../shaders/vertex/simple_transform.glsl"), 
-            include_str!("../shaders/fragment/ellipse.glsl"), 
-            None
-        ).expect("GUI::INITIALIZATION Failed to load Simple Transform Ellipse shader");
-
-        #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION Simple Transform Ellipse program loaded");
-
-        let no_transform_line = Program::from_source(
-            &display, 
-            include_str!("../shaders/vertex/no_transform.glsl"), 
-            include_str!("../shaders/fragment/line.glsl"), 
-            None
-        ).expect("GUI::INITIALIZATION Failed to load No Transform Line shader");
-        
-        #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION No Transform Line program loaded\n");
-
-        let texture = Program::from_source(
-            &display, 
-            include_str!("../shaders/vertex/texture.glsl"), 
-            include_str!("../shaders/fragment/texture.glsl"), 
-            None
-        ).expect("GUI::INITIALIZATION Failed to load Texture shader");
-        
-        #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION Texture loaded\n");   
-
-        let text = Program::from_source(
-            &display, 
-            include_str!("../shaders/vertex/texture.glsl"), 
-            include_str!("../shaders/fragment/text.glsl"), 
-            None
-        ).expect("GUI::INITIALIZATION Failed to load Text shader");
-        
-        #[cfg(debug_assertions)]
-        println!("GUI::INITIALIZATION Text loaded\n");   
-
-        //
-        // main loop
-        //
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Starting Application");
@@ -201,20 +156,36 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running start function");
 
-        let mut images = HashMap::new();
-        let mut fonts = HashMap::new();
+        let mut image_indecies = HashMap::new();
+        let mut font_indecies = HashMap::new();
+        let mut font_character_infos = Vec::new(); 
         let mut text_inputs = Vec::new();
 
         let mut loader = super::super::Loader {
             display: &display,
-            images: &mut images,
-            fonts: &mut fonts,
+            image_indecies: &mut image_indecies,
+            font_indecies: &mut font_indecies,
+            images: Vec::new(),
+            fonts: Vec::new(),
+            image_dimensions: Vec::new(),
+            font_character_infos: &mut font_character_infos,
             text_inputs: &mut text_inputs,
         };
-
+ 
         let mut states = vec![start(&mut loader)];
 
-        
+        let mut image_textures = if loader.images.len() == 0 {
+            None
+        } else {
+            Some(glium::texture::Texture2dArray::new(&display, loader.images).unwrap())
+        };
+
+        let mut font_textures = if loader.fonts.len() == 0 {
+            None
+        } else {
+            Some(glium::texture::Texture2dArray::new(&display, loader.fonts).unwrap())
+        };
+
         // if pixel mode is set, there is no reason to keep remaking the frame buffer every frame
         // therefore we make it now and clear it every frame which is considerably faster
 
@@ -226,21 +197,6 @@ impl Application {
             size.x, 
             size.y
         ).expect("failed to create texture buffer");
-
-
-        let mut vertex_buffer = {
-            use rendering::TextureVertex;
-
-            glium::VertexBuffer::new(&display, 
-                                     &[TextureVertex { position: [1.0, 1.0], texture_coords: [1.0, 1.0] },
-                                       TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
-                                       TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
-
-                                       TextureVertex { position: [0.0, 1.0], texture_coords: [0.0, 1.0] },
-                                       TextureVertex { position: [1.0, 0.0], texture_coords: [1.0, 0.0] },
-                                       TextureVertex { position: [0.0, 0.0], texture_coords: [0.0, 0.0] }])
-                .expect("failed to create vertex_buffer for drawing the frame_buffer to the screen")
-        };
 
         // used to ensure that we don't go above the desired frame rate
         let mut next_frame_time = Instant::now() + self.frame_time;
@@ -429,8 +385,19 @@ impl Application {
           
             // run state functions
             let trans = {
+                // construct drawing data
+                let mut drawing_data = DrawingData::default();
+
+                // FIXME: cloning is bad, find another way
+                drawing_data.image_indecies = image_indecies.clone();
+                drawing_data.font_indecies = font_indecies.clone();
+
+                // set variables
+                drawing_data.scaled_aspect_ratio = scaled_aspect_ratio;
+                drawing_data.aspect_ratio = aspect_ratio;
+
                 let mut _frame = Frame { 
-                    shapes: Vec::new(),
+                    drawing_data: &mut drawing_data,
                 };
                 
                 // run update for current state
@@ -446,62 +413,84 @@ impl Application {
                 );
     
                 // run shadow draw for all states
-                states.iter_mut().for_each(|debris| debris.shadow_draw(
+                states.iter_mut().for_each(|state| state.shadow_draw(
                     &mut _frame,
                     &state_data,
-                ));
+                )); 
     
-                // sort shapes by depth
-                if self.depth_sorting {
-                    _frame.shapes.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
-                }
-    
-                texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0);
+                texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0); 
 
-                // construct drawing data
-                let mut drawing_data = DrawingData {
-                    frame: &mut texture_buffer,
-                    vertex_buffer: &mut vertex_buffer,
-                    simple_transform_fill: &simple_transform_fill,
-                    simple_transform_ellipse: &simple_transform_ellipse,
-                    no_transform_line: &no_transform_line,
-                    texture: &texture,
-                    display: &display,
-                    text: &text,
-                    window_dimensions: Vec2::new(w as f32, h as f32),
-                    pixel_window_dimensions: 
-                        self.pixel_window_size.map(|x| Vec2::new(x.x as f32, x.y as f32)),
-                    aspect_ratio,
-                    scaled_aspect_ratio,
-                    images: &images,
-                    fonts: &fonts,
-                };
+                // ellipse buffers
 
-                // draw shapes
-                _frame.shapes.iter_mut().for_each(|(shape, _)| {
-                    shape.draw(&mut drawing_data);
-                });
+                let ellipse_position_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
+                    &display, 
+                    &_frame.drawing_data.ellipse_positions,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let ellipse_size_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
+                    &display, 
+                    &_frame.drawing_data.ellipse_sizes,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                // line buffers
+
+                let line_point_buffer = glium::buffer::Buffer::<[[f32; 4]]>::new(
+                    &display, 
+                    &_frame.drawing_data.line_points,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let line_width_buffer = glium::buffer::Buffer::<[f32]>::new(
+                    &display, 
+                    &_frame.drawing_data.line_widths,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                // FIXME: this is just horrible, really horrible
 
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
-                    pos: [0.0f32, 0.0],
-                    size: [2.0f32, 2.0],
-                    anchor: [0.0f32, 0.0],
-                    pivot: [0.5f32, 0.5],
-                    rotation: [[1.0f32, 0.0], 
-                               [0.0,    1.0]],
-                    aspect_ratio: 1.0f32,
-                    texture_dimensions: [w as f32, h as f32],
-                    tex: &texture_buffer,
-                    fill_color: [1.0f32, 1.0, 1.0, 1.0]
+                    //image_textures: &image_textures,
+                    //font_textures: &font_textures,
+                    window_dimensions: [w as f32, h as f32],
+                    // ellipse buffers
+                    ellipse_position_buffer: &ellipse_position_buffer,
+                    ellipse_size_buffer: &ellipse_size_buffer,
+                    // line buffers
+                    line_point_buffer: &line_point_buffer,
+                    line_width_buffer: &line_width_buffer,
                 };
 
-                // draw the frame buffer to the window and handle errors
-                let _ = frame.draw(&vertex_buffer,
-                                   &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
-                                   &texture,
-                                   &uniforms,
-                                   &Default::default());
+                //println!("{:?}", _frame.drawing_data.verts);
+
+                if _frame.drawing_data.verts.len() > 0 {
+                    // FIXME: creating a new vertex buffer every frame is slow, but I for some
+                    // reason it would keep crashing if I were to write       
+                    
+                    if self.depth_sorting {
+                        _frame.drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap());
+                    }
+
+                    let vertex_buffer = glium::VertexBuffer::new(&display, &_frame.drawing_data.verts).unwrap();
+
+                    let draw_parameters = glium::draw_parameters::DrawParameters {
+                        blend: glium::Blend::alpha_blending(), 
+                        .. Default::default()
+                    };
+    
+                    // draw the frame buffer to the window and handle errors
+                    let _ = frame.draw(&vertex_buffer,
+                                       &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
+                                       &simple_transform_fill,
+                                       &uniforms,
+                                       &draw_parameters);
+                }
    
                 trans
             };

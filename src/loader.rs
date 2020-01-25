@@ -1,14 +1,19 @@
 use super::FontTexture;
 use super::TextInput;
 use super::math::*;
+use super::font::CharacterInfos;
 use std::io::Read;
-use glium::texture::texture2d::Texture2d;
+use glium::texture::RawImage2d;
 use std::collections::HashMap;
 
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
-    pub(crate) images: &'s mut HashMap<String, Texture2d>,
-    pub(crate) fonts: &'s mut HashMap<String, FontTexture>,
+    pub(crate) image_indecies: &'s mut HashMap<String, usize>,
+    pub(crate) font_indecies: &'s mut HashMap<String, usize>,
+    pub(crate) images: Vec<RawImage2d<'s, u8>>,
+    pub(crate) fonts: Vec<RawImage2d<'s, f32>>,
+    pub(crate) image_dimensions: Vec<Vec2<f32>>,
+    pub(crate) font_character_infos: &'s mut Vec<HashMap<char, CharacterInfos>>,
     pub(crate) text_inputs: &'s mut Vec<std::rc::Rc<std::cell::RefCell<(String, bool)>>>,
 }
 
@@ -19,10 +24,15 @@ impl<'s> Loader<'s> {
         let file = std::fs::File::open(path)
             .expect(format!("GUI::TEXT Failed to open font located at path: {}", path).as_str());
 
-        let font_texture = FontTexture::new(self.display, file, font_size, FontTexture::ascii_character_list())
+        let (font_texture, character_infos) = FontTexture::new(self.display, 
+                                                               file, 
+                                                               font_size, 
+                                                               FontTexture::ascii_character_list())
             .expect(format!("GUI::TEXT Failed to load font located at path: {}", path).as_str());
 
-        self.fonts.insert(path.into(), font_texture);
+        self.font_indecies.insert(path.into(), self.fonts.len());
+        self.fonts.push(font_texture);
+        self.font_character_infos.push(character_infos);
     }
 
     pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat) -> Vec2<f32>
@@ -31,7 +41,8 @@ impl<'s> Loader<'s> {
         let mut buf = Vec::new();
 
         std::fs::File::open(path)
-            .expect(format!("GUI::IMAGE Failed to open image located at path: {}", path).as_str()).read_to_end(&mut buf)
+            .expect(format!("GUI::IMAGE Failed to open image located at path: {}", path).as_str())
+            .read_to_end(&mut buf)
             .expect(format!("GUI::IMAGE Failed to read image located at path: {}", path).as_str());
 
         let image = image::load(std::io::Cursor::new(buf), format)
@@ -41,12 +52,13 @@ impl<'s> Loader<'s> {
 
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 
-        let texture = Texture2d::new(self.display, image)
-            .expect("GUI::IMAGE Failed to create texture buffer");
+        let image_dimensions = Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32);
 
-        self.images.insert(path.into(), texture);
+        self.image_indecies.insert(path.into(), self.images.len());
+        self.images.push(image);
+        self.image_dimensions.push(image_dimensions);
 
-        Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
+        image_dimensions
     }
 
     pub fn load_image_from_raw<I>(&mut self, data: &[u8], format: image::ImageFormat, ident: I) -> Vec2<f32> 
@@ -59,12 +71,13 @@ impl<'s> Loader<'s> {
 
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 
-        let texture = Texture2d::new(self.display, image)
-            .expect("GUI::IMAGE Failed to create texture buffer");
+        let image_dimensions = Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32);
 
-        self.images.insert(ident.into(), texture);
+        self.image_indecies.insert(ident.into(), self.images.len());
+        self.images.push(image);
+        self.image_dimensions.push(image_dimensions);
 
-        Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32)
+        image_dimensions
     }
 
     pub fn text_input(&mut self) -> TextInput {

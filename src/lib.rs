@@ -15,11 +15,12 @@ pub(crate) mod drawing_data;
 
 pub type KeyCode = glium::glutin::event::VirtualKeyCode;
 
+pub(crate) use rendering::RECT_VERTS;
+
 pub use application::*;
 pub use state::*;
 pub use rendering::{
     Anchor,
-    Shape,
     Frame,
     Canvas,
 };

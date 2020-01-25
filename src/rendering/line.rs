@@ -1,10 +1,7 @@
 use super::super::*;
-use super::Vertex;
 use math::*;
-use glium;
-use glium::Surface;
 
-pub struct LineBuilder<'s> {
+pub struct Line<'s> {
     p0: Vec2<f32>,
     p1: Vec2<f32>,
     width: f32,
@@ -13,21 +10,11 @@ pub struct LineBuilder<'s> {
     anchor: Anchor,
     scaling: bool,
     depth: f32,
-    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
+    drawing_data: &'s mut DrawingData,
 }
 
-pub struct Line {
-    p0: Vec2<f32>,
-    p1: Vec2<f32>,
-    width: f32,
-    smooth: bool,
-    color: [f32; 4],
-    anchor: Anchor,
-    scaling: bool,
-}
-
-impl<'s> LineBuilder<'s> {
-    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>) -> Self {
+impl<'s> Line<'s> {
+    pub fn new(data: &'s mut DrawingData) -> Self {
         Self {
             p0: Vec2::new(0.2, 0.2),
             p1: Vec2::new(-0.2, -0.2),
@@ -37,7 +24,7 @@ impl<'s> LineBuilder<'s> {
             anchor: Anchor::Middle,
             scaling: false,
             depth: 0.0,
-            shape_vec
+            drawing_data: data,
         }
     }
 
@@ -47,27 +34,13 @@ impl<'s> LineBuilder<'s> {
         self
     }
 
-    pub fn draw(self) {
-        self.shape_vec.push((Box::new(Line {
-            p0: self.p0,
-            p1: self.p1,
-            color: self.color,
-            anchor: self.anchor,
-            scaling: self.scaling,
-            smooth: self.smooth,
-            width: self.width,
-        }), self.depth))
-    }
-}
-
-impl super::Shape for Line {
-    fn draw(&mut self, drawing_data: &mut DrawingData) {
-        drawing_data.pixel_window_dimensions.map(|dims| { 
+    pub fn draw(&mut self) {
+        self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.p0 /= dims.y / 2.0;
             self.p1 /= dims.y / 2.0;
 
-            self.width /= dims.y;
-        });
+            self.width /= dims.y;        
+        }); 
 
         let a = (self.p1 - self.p0).normalize();
         
@@ -84,48 +57,46 @@ impl super::Shape for Line {
         }
 
         let verts = &[
-            Vertex{ position: v0.as_array()},
-            Vertex{ position: v1.as_array()},
-            Vertex{ position: v2.as_array()},
-            
-            Vertex{ position: v1.as_array()},
-            Vertex{ position: v2.as_array()},
-            Vertex{ position: v3.as_array()},
+            v0,
+            v1,
+            v2,
+            v1,
+            v2,
+            v3
         ];
 
-        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, verts)
-            .expect("failed to create vertex buffer");
+        for vert in verts {
+            let mut position = *vert;
 
-        let uniforms = uniform!{
-            p0: self.p0.as_array(),
-            p1: self.p1.as_array(),
-            width: self.width,
-            anchor: self.anchor.as_vec().as_array(),
-            aspect_ratio: drawing_data.aspect_ratio,
-            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
-            scale_aspect_ratio: self.scaling,
-            window_dimensions: drawing_data.window_dimensions.as_array(),
-            fill_color: self.color,
-        };
+            if self.scaling {
+                position.x /= self.drawing_data.scaled_aspect_ratio;
+            } else { 
+                position.x /= self.drawing_data.aspect_ratio;
+            }
 
-        let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(), 
-            .. Default::default()
-        };
+            position += self.anchor.as_vec();
 
-        drawing_data.frame.as_surface().draw(
-            &vertex_buffer, 
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
-            drawing_data.no_transform_line,
-            &uniforms,
-            &draw_params,
-        ).expect("failed to draw rect");
+            self.drawing_data.verts.push(super::Vertex {
+                position: position.as_array(),
+                texture_coords: (*vert + 0.5).as_array(),
+                color: self.color,
+                depth: self.depth,
+                shape: 2,
+                index: self.drawing_data.line_points.len() as i32,
+            });
+        }
+
+        self.p0 += self.anchor.as_vec();
+        self.p1 += self.anchor.as_vec();
+
+        self.drawing_data.line_points.push([self.p0.x, self.p0.y, self.p1.x, self.p1.y]);
+        self.drawing_data.line_widths.push(self.width);
     }
 }
 
-color!(LineBuilder);
-anchor!(LineBuilder);
-smooth!(LineBuilder);
-width!(LineBuilder);
-scaling!(LineBuilder);
-depth!(LineBuilder);
+color!(Line);
+anchor!(Line);
+smooth!(Line);
+width!(Line);
+scaling!(Line);
+depth!(Line);

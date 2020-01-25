@@ -1,41 +1,19 @@
 use super::super::*;
-use super::Vertex;
 use math::*;
-use glium;
-use glium::Surface;
 
-static RECT_VERTS: &[Vertex] = &[
-    Vertex { position: [1.0, 1.0] },
-    Vertex { position: [1.0, 0.0] },
-    Vertex { position: [0.0, 1.0] },
-
-    Vertex { position: [1.0, 0.0] },
-    Vertex { position: [0.0, 1.0] },
-    Vertex { position: [0.0, 0.0] },
-];
-
-pub struct EllipseBuilder<'s> {
+pub struct Ellipse<'s> {
     position: Vec2<f32>,
     size: Vec2<f32>,
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
+    scaling: bool,
     depth: f32,
-    scaling: bool,
-    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
+    drawing_data: &'s mut DrawingData,
 }
 
-pub struct Ellipse {
-    position: Vec2<f32>,
-    size: Vec2<f32>,
-    color: [f32; 4],
-    anchor: Anchor,
-    pivot: Anchor,
-    scaling: bool,
-}
-
-impl<'s> EllipseBuilder<'s> {
-    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>) -> Self {
+impl<'s> Ellipse<'s> {
+    pub fn new(data: &'s mut DrawingData) -> Self {
         Self {
             position: Vec2::new(0.0, 0.0),
             size: Vec2::new(0.2, 0.2),
@@ -44,61 +22,68 @@ impl<'s> EllipseBuilder<'s> {
             pivot: Anchor::Middle,
             scaling: false,
             depth: 0.0,
-            shape_vec,
+            drawing_data: data,
         }
     }
 
-    pub fn draw(self) {
-        self.shape_vec.push((Box::new(Ellipse {
-            position: self.position,
-            size: self.size,
-            color: self.color,
-            anchor: self.anchor,
-            pivot: self.pivot,
-            scaling: self.scaling,
-        }), self.depth))
-    }
-}
-
-impl super::Shape for Ellipse {
-    fn draw(&mut self, drawing_data: &mut DrawingData) {
-        drawing_data.pixel_window_dimensions.map(|dims| {
+    pub fn draw(&mut self) {
+        self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
             self.size /= dims.y / 2.0;
         }); 
 
-        let uniforms = uniform!{
-            pos: self.position.as_array(),
-            size: self.size.as_array(),
-            rotation: Mat2::<f32>::from_degrees(0.0).as_array(),
-            anchor: self.anchor.as_vec().as_array(),
-            pivot: (self.pivot.as_vec() / 2.0 + 0.5).as_array(),
-            aspect_ratio: drawing_data.aspect_ratio,
-            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
-            scale_aspect_ratio: self.scaling,
-            window_dimensions: drawing_data.window_dimensions.as_array(),
-            fill_color: self.color,
-        };
+        for vert in &RECT_VERTS {
+            // calculate vertex positions
+            let mut position = *vert - self.pivot.as_vec();
 
-        let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(), 
-            .. Default::default()
-        };
+            position *= self.size; 
+            position += self.position;
 
-        drawing_data.frame.as_surface().draw(
-            &*drawing_data.vertex_buffer, 
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
-            drawing_data.simple_transform_ellipse,
-            &uniforms,
-            &draw_params,
-        ).expect("failed to draw rect");
+            if self.scaling {
+                position.x /= self.drawing_data.scaled_aspect_ratio;
+            } else { 
+                position.x /= self.drawing_data.aspect_ratio;
+            }
+
+            position += self.anchor.as_vec(); 
+
+            self.drawing_data.verts.push(super::Vertex {
+                position: position.as_array(),
+                texture_coords: (*vert + 0.5).as_array(),
+                color: self.color,
+                depth: self.depth,
+                shape: 1,
+                index: self.drawing_data.ellipse_positions.len() as i32,
+            });
+
+        }
+
+        let mut position = self.pivot.as_vec();
+
+        position *= self.size; 
+        position += self.position;
+
+        if self.scaling {
+            position.x /= self.drawing_data.scaled_aspect_ratio;
+            self.size.x /= self.drawing_data.scaled_aspect_ratio;
+        } else { 
+            position.x /= self.drawing_data.aspect_ratio;
+            self.size.x /= self.drawing_data.aspect_ratio;
+        }
+
+        position += self.anchor.as_vec();
+
+        self.drawing_data.ellipse_positions.push(position.as_array());
+        self.drawing_data.ellipse_sizes.push(self.size.as_array());
     }
 }
 
-position!(EllipseBuilder);
-size!(EllipseBuilder);
-color!(EllipseBuilder);
-anchor!(EllipseBuilder);
-pivot!(EllipseBuilder);
-scaling!(EllipseBuilder);
-depth!(EllipseBuilder);
+
+
+position!(Ellipse);
+size!(Ellipse);
+color!(Ellipse);
+anchor!(Ellipse);
+pivot!(Ellipse);
+scaling!(Ellipse);
+depth!(Ellipse);
