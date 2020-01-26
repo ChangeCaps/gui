@@ -3,7 +3,7 @@ mod anchor;
 mod line;
 mod ellipse;
 mod image;
-//mod text;
+mod text;
 mod traits;
 mod frame;
 
@@ -12,7 +12,7 @@ pub use anchor::*;
 pub use line::*;
 pub use ellipse::*;
 pub use self::image::*;
-//pub use text::*;
+pub use text::*;
 pub use frame::*;
 
 use crate::drawing_data::*;

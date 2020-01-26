@@ -40,7 +40,10 @@ impl<'s> Image<'s> {
     pub fn draw(mut self) {
         let index = *self.drawing_data.image_indecies.get(&self.image).unwrap();
 
+        let image_position = self.drawing_data.image_positions[index];
+        
         let dimensions = self.drawing_data.image_dimensions[index];
+        let dimensions = Vec2::new(dimensions.x as f32, dimensions.y as f32);
 
         let ratio = dimensions.x / dimensions.y;
 
@@ -72,7 +75,7 @@ impl<'s> Image<'s> {
 
             self.drawing_data.verts.push(super::Vertex {
                 position: position.as_array(),
-                texture_coords: (*vert + 0.5).as_array(),
+                texture_coords: ((*vert + 0.5) * dimensions / self.drawing_data.image_atlas_dimensions + image_position).as_array(),
                 color: self.color,
                 depth: self.depth,
                 shape: 3,

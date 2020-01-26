@@ -12,6 +12,7 @@ mod loader;
 mod font;
 mod text_input;
 pub(crate) mod drawing_data;
+pub(crate) mod texture_atlas;
 
 pub type KeyCode = glium::glutin::event::VirtualKeyCode;
 

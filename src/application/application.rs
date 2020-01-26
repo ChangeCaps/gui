@@ -157,8 +157,10 @@ impl Application {
         println!("GUI::APPLICATION Running start function");
 
         let mut image_indecies = HashMap::new();
+        let mut image_dimensions = Vec::new();
         let mut font_indecies = HashMap::new();
         let mut font_character_infos = Vec::new(); 
+        let mut font_dimensions = Vec::new();
         let mut text_inputs = Vec::new();
 
         let mut loader = super::super::Loader {
@@ -167,24 +169,17 @@ impl Application {
             font_indecies: &mut font_indecies,
             images: Vec::new(),
             fonts: Vec::new(),
-            image_dimensions: Vec::new(),
+            image_dimensions: &mut image_dimensions,
+            font_dimensions: &mut font_dimensions,
             font_character_infos: &mut font_character_infos,
             text_inputs: &mut text_inputs,
         };
- 
+
         let mut states = vec![start(&mut loader)];
 
-        let mut image_textures = if loader.images.len() == 0 {
-            None
-        } else {
-            Some(glium::texture::Texture2dArray::new(&display, loader.images).unwrap())
-        };
-
-        let mut font_textures = if loader.fonts.len() == 0 {
-            None
-        } else {
-            Some(glium::texture::Texture2dArray::new(&display, loader.fonts).unwrap())
-        };
+        
+        let (image_atlas, image_positions, image_atlas_dimensions) = crate::texture_atlas::crate_atlas(&display, &mut loader.images, &mut loader.image_dimensions);
+        let (font_atlas, font_positions, font_atlas_dimensions) = crate::texture_atlas::crate_atlas(&display, &mut loader.fonts, &mut loader.font_dimensions);
 
         // if pixel mode is set, there is no reason to keep remaking the frame buffer every frame
         // therefore we make it now and clear it every frame which is considerably faster
@@ -390,11 +385,18 @@ impl Application {
 
                 // FIXME: cloning is bad, find another way
                 drawing_data.image_indecies = image_indecies.clone();
+                drawing_data.image_dimensions = image_dimensions.clone();
                 drawing_data.font_indecies = font_indecies.clone();
+                drawing_data.font_dimensions = font_dimensions.clone();
+                drawing_data.font_character_infos = font_character_infos.clone();
 
                 // set variables
                 drawing_data.scaled_aspect_ratio = scaled_aspect_ratio;
                 drawing_data.aspect_ratio = aspect_ratio;
+                drawing_data.font_atlas_dimensions = font_atlas_dimensions;
+                drawing_data.font_positions = font_positions.clone();
+                drawing_data.image_atlas_dimensions = image_atlas_dimensions;
+                drawing_data.image_positions = image_positions.clone();
 
                 let mut _frame = Frame { 
                     drawing_data: &mut drawing_data,
@@ -452,22 +454,26 @@ impl Application {
                     glium::buffer::BufferMode::Default,
                 ).unwrap();
 
-                // FIXME: this is just horrible, really horrible
-
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
-                    //image_textures: &image_textures,
-                    //font_textures: &font_textures,
                     window_dimensions: [w as f32, h as f32],
+
                     // ellipse buffers
                     ellipse_position_buffer: &ellipse_position_buffer,
                     ellipse_size_buffer: &ellipse_size_buffer,
+
                     // line buffers
                     line_point_buffer: &line_point_buffer,
                     line_width_buffer: &line_width_buffer,
-                };
 
-                //println!("{:?}", _frame.drawing_data.verts);
+                    // image
+                    image_atlas: &image_atlas,
+                    image_atlas_dimensions: image_atlas_dimensions.as_array(),
+
+                    // text
+                    font_atlas: &font_atlas,
+                    font_atlas_dimensions: font_atlas_dimensions.as_array(),
+                };
 
                 if _frame.drawing_data.verts.len() > 0 {
                     // FIXME: creating a new vertex buffer every frame is slow, but I for some

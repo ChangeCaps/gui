@@ -5,6 +5,7 @@ use super::font::CharacterInfos;
 use std::io::Read;
 use glium::texture::RawImage2d;
 use std::collections::HashMap;
+use glium::texture::Texture2dDataSource;
 
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
@@ -12,7 +13,8 @@ pub struct Loader<'s> {
     pub(crate) font_indecies: &'s mut HashMap<String, usize>,
     pub(crate) images: Vec<RawImage2d<'s, u8>>,
     pub(crate) fonts: Vec<RawImage2d<'s, f32>>,
-    pub(crate) image_dimensions: Vec<Vec2<f32>>,
+    pub(crate) image_dimensions: &'s mut Vec<Vec2<u32>>,
+    pub(crate) font_dimensions: &'s mut Vec<Vec2<u32>>,
     pub(crate) font_character_infos: &'s mut Vec<HashMap<char, CharacterInfos>>,
     pub(crate) text_inputs: &'s mut Vec<std::rc::Rc<std::cell::RefCell<(String, bool)>>>,
 }
@@ -30,12 +32,15 @@ impl<'s> Loader<'s> {
                                                                FontTexture::ascii_character_list())
             .expect(format!("GUI::TEXT Failed to load font located at path: {}", path).as_str());
 
+        let font_dimensions = Vec2::new(font_texture.width, font_texture.height);
+
+        self.font_dimensions.push(font_dimensions);
         self.font_indecies.insert(path.into(), self.fonts.len());
         self.fonts.push(font_texture);
         self.font_character_infos.push(character_infos);
     }
 
-    pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat) -> Vec2<f32>
+    pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat) -> Vec2<u32>
         where P: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
     {
         let mut buf = Vec::new();
@@ -52,16 +57,16 @@ impl<'s> Loader<'s> {
 
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 
-        let image_dimensions = Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32);
+        let image_dimensions = Vec2::new(image_dimensions.0, image_dimensions.1);
 
+        self.image_dimensions.push(image_dimensions);
         self.image_indecies.insert(path.into(), self.images.len());
         self.images.push(image);
-        self.image_dimensions.push(image_dimensions);
 
         image_dimensions
     }
 
-    pub fn load_image_from_raw<I>(&mut self, data: &[u8], format: image::ImageFormat, ident: I) -> Vec2<f32> 
+    pub fn load_image_from_raw<I>(&mut self, data: &[u8], format: image::ImageFormat, ident: I) -> Vec2<u32> 
         where I: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
     {
         let image = image::load(std::io::Cursor::new(data), format)
@@ -71,11 +76,11 @@ impl<'s> Loader<'s> {
 
         let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 
-        let image_dimensions = Vec2::new(image_dimensions.0 as f32, image_dimensions.1 as f32);
+        let image_dimensions = Vec2::new(image_dimensions.0, image_dimensions.1);
 
+        self.image_dimensions.push(image_dimensions);
         self.image_indecies.insert(ident.into(), self.images.len());
         self.images.push(image);
-        self.image_dimensions.push(image_dimensions);
 
         image_dimensions
     }

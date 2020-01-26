@@ -1,10 +1,9 @@
 use super::super::*;
-use super::TextureVertex;
 use math::*;
 use glium;
 use glium::Surface;
 
-pub struct TextBuilder<'s> {
+pub struct Text<'s> {
     font: String,
     position: Vec2<f32>,
     scale: f32,
@@ -13,25 +12,13 @@ pub struct TextBuilder<'s> {
     anchor: Anchor,
     pivot: Anchor,
     scaling: bool,
-    text: String,
     depth: f32,
-    shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>,
-}
-
-pub struct Text {
-    font: String,
-    position: Vec2<f32>,
-    scale: f32,
-    rotation: f32,
-    color: [f32; 4],
-    anchor: Anchor,
-    pivot: Anchor,
-    scaling: bool,
     text: String,
+    drawing_data: &'s mut DrawingData,
 }
 
-impl<'s> TextBuilder<'s> {
-    pub fn new(shape_vec: &'s mut Vec<(Box<dyn super::Shape>, f32)>, font: String) -> Self {
+impl<'s> Text<'s> {
+    pub fn new(data: &'s mut DrawingData, font: String) -> Self {
         Self {
             font,
             position: Vec2::new(0.0, 0.0),
@@ -43,7 +30,7 @@ impl<'s> TextBuilder<'s> {
             scaling: false,
             text: String::new(),
             depth: 0.0,
-            shape_vec
+            drawing_data: data,
         }
     }
 
@@ -55,59 +42,33 @@ impl<'s> TextBuilder<'s> {
         self
     }
 
-    pub fn draw(self) {
-        self.shape_vec.push((Box::new(Text {
-            position: self.position,
-            scale: self.scale,
-            rotation: self.rotation,
-            color: self.color,
-            anchor: self.anchor,
-            pivot: self.pivot,
-            scaling: self.scaling,
-            text: self.text,
-            font: self.font,
-        }), self.depth))
-    }
-}
-
-impl super::Shape for Text {
-    fn draw(&mut self, drawing_data: &mut DrawingData) {
+    pub fn draw(&mut self) {
         // don't draw if there is no text
         if self.text.len() == 0 {
             return;
         }
 
-        let font = drawing_data.fonts.get(&self.font).unwrap();
-
-        drawing_data.pixel_window_dimensions.map(|dims| {
+        self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.position /= dims.y / 2.0;
             self.scale /= dims.y / 2.0;
         }); 
 
-        let mut vertex_buffer_data = Vec::with_capacity(self.text.len() * 4 * 4);
-        let mut index_buffer_data = Vec::with_capacity(self.text.len() * 6);
+        let index = self.drawing_data.font_indecies.get(&self.font).unwrap();
+        let font = &self.drawing_data.font_character_infos[*index];
+        let font_position = self.drawing_data.font_positions[*index];
+        let dimensions = self.drawing_data.font_dimensions[*index];
+        let dimensions = Vec2::new(dimensions.x as f32, dimensions.y as f32);
 
+        let mut verts = Vec::with_capacity(self.text.len() * 6);
         let mut total_text_width = 0.0;
-
         let mut height = 0.0;
 
         // calc verts & indecies
         for character in self.text.chars() {
-            let infos = match font.character_infos.get(&character) {
+            let infos = match font.get(&character) {
                 Some(infos) => infos,
                 None => continue,
             };
-
-            // adding the quad in the index buffer
-            {
-                let first_vertex_offset = vertex_buffer_data.len() as u16;
-                index_buffer_data.push(first_vertex_offset);
-                index_buffer_data.push(first_vertex_offset + 1);
-                index_buffer_data.push(first_vertex_offset + 2);
-                index_buffer_data.push(first_vertex_offset + 2);
-                index_buffer_data.push(first_vertex_offset + 1);
-                index_buffer_data.push(first_vertex_offset + 3);
-            }
 
             // add to total width
             total_text_width += infos.left_padding;
@@ -121,84 +82,92 @@ impl super::Shape for Text {
             total_text_width += infos.size.0 + infos.right_padding;
 
             // top-left vertex
-            vertex_buffer_data.push(TextureVertex {
-                position: [left_coord, top_coord],
-                texture_coords: [infos.tex_coords.0, infos.tex_coords.1],
-            });
+            verts.push((
+                Vec2::new(left_coord, top_coord),
+                Vec2::new(infos.tex_coords.0, infos.tex_coords.1),
+            ));
 
             // top-right vertex
-            vertex_buffer_data.push(TextureVertex {
-                position: [right_coord, top_coord],
-                texture_coords: [infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1],
-            });
+            verts.push((
+                Vec2::new(right_coord, top_coord),
+                Vec2::new(infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1),
+            ));
 
             // bottom-left vertex
-            vertex_buffer_data.push(TextureVertex {
-                position: [left_coord, bottom_coord],
-                texture_coords: [infos.tex_coords.0, infos.tex_coords.1 + infos.tex_size.1],
-            });
+            verts.push((
+                Vec2::new(left_coord, bottom_coord),
+                Vec2::new(infos.tex_coords.0, infos.tex_coords.1 + infos.tex_size.1),
+            ));
+            
+
+
+            // top-right vertex
+            verts.push((
+                Vec2::new(right_coord, top_coord),
+                Vec2::new(infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1),
+            ));
+
+            // bottom-left vertex
+            verts.push((
+                Vec2::new(left_coord, bottom_coord),
+                Vec2::new(infos.tex_coords.0, infos.tex_coords.1 + infos.tex_size.1),
+            ));
 
             // bottom-right vertex
-            vertex_buffer_data.push(TextureVertex {
-                position: [right_coord, bottom_coord],
-                texture_coords: [
+            verts.push((
+                Vec2::new(right_coord, bottom_coord),
+                Vec2::new(
                     infos.tex_coords.0 + infos.tex_size.0,
                     infos.tex_coords.1 + infos.tex_size.1
-                ],
-            });
+                ),
+            ));
 
             if infos.height_over_line > height {
                 height = infos.height_over_line;
             }
         }
 
-        let vertex_buffer = glium::VertexBuffer::new(drawing_data.display, &vertex_buffer_data)
-            .expect("failed to create vertex buffer");
-
-        let index_buffer = glium::IndexBuffer::new(drawing_data.display, glium::index::PrimitiveType::TrianglesList, &index_buffer_data)
-            .expect("failed to create index buffer");   
-
         // calculate pivot
-        let mut pivot = self.pivot.as_vec()/2.0 + 0.5;
+        let mut pivot = self.pivot.as_vec();
         pivot.x *= total_text_width;
+        pivot.y += 0.5;
         pivot.y *= height;
 
-        let uniforms = uniform!{
-            pos: self.position.as_array(),
-            size: [self.scale/height, self.scale/height],
-            rotation: Mat2::<f32>::from_degrees(self.rotation).as_array(),
-            anchor: self.anchor.as_vec().as_array(),
-            pivot: pivot.as_array(),
-            aspect_ratio: drawing_data.aspect_ratio,
-            scaled_aspect_ratio: drawing_data.scaled_aspect_ratio,
-            scale_aspect_ratio: self.scaling,
-            window_dimensions: drawing_data.window_dimensions.as_array(),
-            fill_color: self.color,
-            tex: glium::uniforms::Sampler(&font.texture, Default::default())
-        };
 
-        // enable alpha blending
-        let draw_params = glium::DrawParameters {
-            blend: glium::Blend::alpha_blending(), 
-            .. Default::default()
-        };
+        for vert in verts {
+            let mut position = vert.0 - pivot;
 
-        // draw
-        drawing_data.frame.as_surface().draw(
-            &vertex_buffer, 
-            &index_buffer, 
-            drawing_data.text,
-            &uniforms,
-            &draw_params,
-        ).expect("failed to draw rect");
+            position *= self.scale; 
+            position *= Mat2::<f32>::from_radians(self.rotation);
+            position += self.position;
+
+            if self.scaling {
+                position.x /= self.drawing_data.scaled_aspect_ratio;
+            } else { 
+                position.x /= self.drawing_data.aspect_ratio;
+            }
+
+            position += self.anchor.as_vec();
+
+            self.drawing_data.verts.push(
+                super::Vertex {
+                    position: position.as_array(),
+                    texture_coords: (vert.1 * dimensions / self.drawing_data.font_atlas_dimensions).as_array(),
+                    color: self.color,
+                    depth: self.depth,
+                    shape: 4,
+                    index: *index as i32,
+                }
+            );
+        }
     }
 }
 
-position!(TextBuilder);
-rotation!(TextBuilder);
-color!(TextBuilder);
-anchor!(TextBuilder);
-pivot!(TextBuilder);
-scaling!(TextBuilder);
-scale!(TextBuilder);
-depth!(TextBuilder);
+position!(Text);
+rotation!(Text);
+color!(Text);
+anchor!(Text);
+pivot!(Text);
+scaling!(Text);
+scale!(Text);
+depth!(Text);

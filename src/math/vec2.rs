@@ -123,7 +123,7 @@ use std::ops::{
     Neg
 };
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct Vec2<I> {
     pub x: I,
     pub y: I,

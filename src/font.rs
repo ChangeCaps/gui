@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io::Read;
+use glium::texture::Texture2dDataSource;
 
 use rusttype::{Rect, Point};
 
@@ -25,10 +26,10 @@ pub struct CharacterInfos {
     pub(crate) right_padding: f32,
 }
 
-struct TextureData {
+pub(crate) struct TextureData {
     data: Vec<f32>,
-    width: u32,
-    height: u32,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
 }
 
 impl<'a> glium::texture::Texture2dDataSource<'a> for &'a TextureData {
@@ -72,10 +73,15 @@ impl FontTexture {
 
         // we load the texture in the displ
 
+        //texture_data.data.iter().for_each(|x| if *x > 0.1 { println!("{}", x) });
+
         Ok((
-            glium::texture::RawImage2d::from_raw_rgba(texture_data.data, 
-                                                      (texture_data.width, 
-                                                       texture_data.height)),
+            glium::texture::RawImage2d {
+                data: Cow::Owned(texture_data.data),
+                width: texture_data.width,
+                height: texture_data.height,
+                format: glium::texture::ClientFormat::F32,
+            },
             chr_infos
         ))
     }

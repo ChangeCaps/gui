@@ -23,19 +23,19 @@ pub trait Canvas<'f> {
         Ellipse::new(self.drawing_data())
     }
 
+    fn image<P>(&mut self, image: P) -> Image
+        where P: Into<String>
+    {
+        Image::new(self.drawing_data(), image.into())
+    }
+
+    fn text<P>(&mut self, font: P) -> Text
+        where P: Into<String>
+    {
+        Text::new(self.drawing_data(), font.into())
+    }
+
     /*
-    fn image<P>(&mut self, image: P) -> ImageBuilder
-        where P: Into<String>
-    {
-        ImageBuilder::new(self.get_shapes(), image.into())
-    }
-
-    fn text<P>(&mut self, font: P) -> TextBuilder
-        where P: Into<String>
-    {
-        TextBuilder::new(self.get_shapes(), font.into())
-    }
-
     fn new_frame(&mut self) -> Frame {
         Frame {
             shapes: Vec::new(),

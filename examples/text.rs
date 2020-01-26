@@ -16,10 +16,10 @@ impl State for TextExample {
             .pivot(Anchor::MiddleRight)
             .scaling(true)
             .draw();
-
+            
         frame.text("assets/test_font.ttf")
             .position(Vec2::new(-0.1, 0.0))
-            .scale(0.05)
+            .scale(0.1)
             .anchor(Anchor::MiddleRight)
             .pivot(Anchor::MiddleRight)
             .scaling(true)
@@ -43,7 +43,7 @@ fn main() {
             let mut text_input = loader.text_input();
             text_input.start();
 
-            loader.load_font("assets/test_font.ttf", 1000);
+            loader.load_font("assets/test_font.ttf", 100);
 
             Box::new(TextExample {
                 text_input,

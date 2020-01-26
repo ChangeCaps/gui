@@ -14,9 +14,17 @@ buffer line_point_buffer {
 	vec4 line_points[];
 };
 
+// image
+uniform sampler2D image_atlas;
+uniform vec2 image_atlas_dimensions;
+
+//
+uniform sampler2D font_atlas;
+uniform vec2 font_atlas_dimensions;
+
 uniform vec2 window_dimensions;
 
-in vec2 texture_coords;
+in vec2 v_texture_coords;
 in vec4 v_color;
 flat in int v_shape;
 flat in int v_index;
@@ -57,6 +65,20 @@ vec4 line(vec2 pos) {
 	discard;
 }
 
+vec4 image() {
+	return texelFetch(image_atlas, ivec2(floor(v_texture_coords * image_atlas_dimensions)), 0) * v_color;
+}
+
+vec4 font() {
+	vec4 c = vec4(v_color.rgb, v_color.a * texture(font_atlas, v_texture_coords));
+
+	if (c.a >= 0.1) {
+		return c;
+	} else {
+		discard;
+	}
+}
+
 void main() {
 	const vec2 pos = gl_FragCoord.xy/window_dimensions * 2.0 - 1.0;
 
@@ -71,6 +93,14 @@ void main() {
 			
 		case 2:
 			color = line(pos);
+			break;
+		
+		case 3:
+			color = image();
+			break;
+		
+		case 4:
+			color = font();
 			break;
 	}
 }
