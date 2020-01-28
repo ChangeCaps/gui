@@ -315,7 +315,7 @@ impl Application {
                                 08 => {
                                     s.0.pop();
                                 },
-                                // default to pushing the character to the text
+                                // default to pushing the character to the String
                                 _ => {    
                                     s.0.push(c);
                                 }
@@ -422,22 +422,6 @@ impl Application {
     
                 texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0); 
 
-                // ellipse buffers
-
-                let ellipse_position_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
-                    &display, 
-                    &_frame.drawing_data.ellipse_positions,
-                    glium::buffer::BufferType::ArrayBuffer,
-                    glium::buffer::BufferMode::Default,
-                ).unwrap();
-
-                let ellipse_size_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
-                    &display, 
-                    &_frame.drawing_data.ellipse_sizes,
-                    glium::buffer::BufferType::ArrayBuffer,
-                    glium::buffer::BufferMode::Default,
-                ).unwrap();
-
                 // line buffers
 
                 let line_point_buffer = glium::buffer::Buffer::<[[f32; 4]]>::new(
@@ -458,10 +442,6 @@ impl Application {
                 let uniforms = uniform!{
                     window_dimensions: [w as f32, h as f32],
 
-                    // ellipse buffers
-                    ellipse_position_buffer: &ellipse_position_buffer,
-                    ellipse_size_buffer: &ellipse_size_buffer,
-
                     // line buffers
                     line_point_buffer: &line_point_buffer,
                     line_width_buffer: &line_width_buffer,
@@ -476,8 +456,8 @@ impl Application {
                 };
 
                 if _frame.drawing_data.verts.len() > 0 {
-                    // FIXME: creating a new vertex buffer every frame is slow, but I for some
-                    // reason it would keep crashing if I were to write       
+                    // FIXME: creating a new vertex buffer every frame is slow, but for some
+                    // reason it would keep crashing if I were to write
                     
                     if self.depth_sorting {
                         _frame.drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap());

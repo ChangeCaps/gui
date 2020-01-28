@@ -2,9 +2,7 @@ use super::super::*;
 use math::*;
 
 pub struct Rect<'s> {
-    position: Vec2<f32>,
-    size: Vec2<f32>,
-    rotation: f32,
+    transform: Transform,
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
@@ -16,9 +14,7 @@ pub struct Rect<'s> {
 impl<'s> Rect<'s> {
     pub fn new(data: &'s mut DrawingData) -> Self {
         Self {
-            position: Vec2::new(0.0, 0.0),
-            size: Vec2::new(0.2, 0.2),
-            rotation: 0.0,
+            transform: Transform::new(),
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
@@ -30,16 +26,14 @@ impl<'s> Rect<'s> {
     
     pub fn draw(&mut self) {
         self.drawing_data.pixel_window_dimensions.map(|dims| {
-            self.position /= dims.y / 2.0;
-            self.size /= dims.y / 2.0;
+            self.transform.position /= dims.y / 2.0;
+            self.transform.size /= dims.y / 2.0;
         }); 
 
         for vert in &RECT_VERTS {
             let mut position = *vert - self.pivot.as_vec() / 2.0;
 
-            position *= self.size; 
-            position *= Mat2::<f32>::from_radians(self.rotation);
-            position += self.position;
+            position = position.transform(self.transform); 
 
             if self.scaling {
                 position.x /= self.drawing_data.scaled_aspect_ratio;
@@ -55,7 +49,9 @@ impl<'s> Rect<'s> {
                 color: self.color,
                 depth: self.depth,
                 shape: 0,
-                index: self.drawing_data.rects,
+                shape_index: self.drawing_data.rects,
+                mask_length: 0,
+                mask_index: 0,
             });
         }
 
@@ -65,9 +61,7 @@ impl<'s> Rect<'s> {
 }
 
 
-position!(Rect);
-size!(Rect);
-rotation!(Rect);
+transform!(Rect);
 color!(Rect);
 anchor!(Rect);
 pivot!(Rect);

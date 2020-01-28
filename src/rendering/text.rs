@@ -156,7 +156,9 @@ impl<'s> Text<'s> {
                     color: self.color,
                     depth: self.depth,
                     shape: 4,
-                    index: *index as i32,
+                    shape_index: *index as i32,
+                    mask_length: 0,
+                    mask_index: 0,
                 }
             );
         }

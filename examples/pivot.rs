@@ -9,25 +9,30 @@ struct PivotExample {
 
 impl State for PivotExample { 
     fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
-        
+        let mut t = Transform::new();
+
+        t.position = Vec2::new(0.0, 0.0);
+        t.rotation = self.rotation;
+
+        let mut p = Transform::new();
+
+        p.position = Vec2::new(0.5, 0.0);
+        p.rotation = self.rotation;
+
+        p = p.transform(t);
+
         frame.rect()
-            .color(color::rgba(0.7, 0.3, 0.2, 0.3))
-            .depth(0.5)
+            .size(Vec2::new(0.2, 0.2))
+            .transform(p)
             .draw();
 
-        
         frame.rect()
-            .color(color::rgba(0.2, 0.3, 0.7, 0.3))
-            .pivot(Anchor::BottomLeft)
+            .position(Vec2::new(0.0, 0.5))
+            .size(Vec2::new(0.3, 0.3))
+            .transform(p)
             .draw();
 
-        for _ in 0..10_000 {
-            frame.rect()
-                .color(color::rgba(0.3, 0.7, 0.2, 1.0))
-                .pivot(Anchor::TopRight)
-                .rotation(std::f32::consts::PI / 4.0)
-                .draw();
-        }
+        self.rotation += _state_data.delta_time;
     }
 }
 

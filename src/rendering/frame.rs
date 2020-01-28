@@ -35,12 +35,7 @@ pub trait Canvas<'f> {
         Text::new(self.drawing_data(), font.into())
     }
 
-    /*
-    fn new_frame(&mut self) -> Frame {
-        Frame {
-            shapes: Vec::new(),
-        }
-    }*/
+    fn masks(&self) -> (i32, i32);
 }
 
 pub struct Frame<'f> { 
@@ -50,5 +45,9 @@ pub struct Frame<'f> {
 impl<'f> Canvas<'f> for Frame<'f> {
     fn drawing_data(&mut self) -> &mut DrawingData {
         self.drawing_data
+    }
+     
+    fn masks(&self) -> (i32, i32) {
+        (0, 0)
     }
 }

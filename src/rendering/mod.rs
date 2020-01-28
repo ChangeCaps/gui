@@ -6,6 +6,7 @@ mod image;
 mod text;
 mod traits;
 mod frame;
+mod mask;
 
 pub use rect::*;
 pub use anchor::*;
@@ -14,6 +15,7 @@ pub use ellipse::*;
 pub use self::image::*;
 pub use text::*;
 pub use frame::*;
+pub use mask::*;
 
 use crate::drawing_data::*;
 use crate::math::*;
@@ -35,7 +37,9 @@ pub(crate) struct Vertex {
     pub color: [f32; 4],
     pub depth: f32,
     pub shape: i32,
-    pub index: i32,
+    pub shape_index: i32,
+    pub mask_length: i32,
+    pub mask_index: i32,
 }
 
 glium::implement_vertex!(Vertex, 
@@ -44,4 +48,6 @@ glium::implement_vertex!(Vertex,
                          color,
                          depth, 
                          shape, 
-                         index);
+                         shape_index,
+                         mask_length,
+                         mask_index);

@@ -122,6 +122,8 @@ use std::ops::{
     DivAssign,
     Neg
 };
+pub use crate::math::*;
+pub use crate::Transform;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct Vec2<I> {
@@ -139,6 +141,16 @@ impl<I> Vec2<I> {
 
     pub fn as_array(self) -> [I; 2] {
         [self.x, self.y]
+    }
+}
+
+impl Vec2<f32> {
+    pub fn transform(mut self, transform: Transform) -> Self {
+        self *= transform.size;
+        self *= Mat2::<f32>::from_radians(transform.rotation);
+        self += transform.position;
+
+        self
     }
 }
 

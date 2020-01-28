@@ -13,6 +13,7 @@ mod font;
 mod text_input;
 pub(crate) mod drawing_data;
 pub(crate) mod texture_atlas;
+mod transform;
 
 pub type KeyCode = glium::glutin::event::VirtualKeyCode;
 
@@ -31,3 +32,4 @@ pub use font::*;
 pub use glium::glutin::event::MouseButton;
 pub use text_input::*;
 pub(crate) use drawing_data::*;
+pub use transform::*;

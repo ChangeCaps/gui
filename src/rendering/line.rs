@@ -82,7 +82,9 @@ impl<'s> Line<'s> {
                 color: self.color,
                 depth: self.depth,
                 shape: 2,
-                index: self.drawing_data.line_points.len() as i32,
+                shape_index: self.drawing_data.line_points.len() as i32,
+                mask_length: 0,
+                mask_index: 0,
             });
         }
 

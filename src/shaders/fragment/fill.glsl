@@ -1,14 +1,5 @@
 #version 450
 
-// ellipse
-buffer ellipse_position_buffer {
-	vec2 ellipse_positions[];
-};
-
-buffer ellipse_size_buffer {
-	vec2 ellipse_sizes[];
-};
-
 // line
 buffer line_point_buffer {
 	vec4 line_points[];
@@ -27,7 +18,7 @@ uniform vec2 window_dimensions;
 in vec2 v_texture_coords;
 in vec4 v_color;
 flat in int v_shape;
-flat in int v_index;
+flat in int v_shape_index;
 
 out vec4 color;
 
@@ -42,13 +33,8 @@ vec2 min_distance_line(vec2 p0, vec2 p1, vec2 p) {
     return (p - projection);
 }
 
-vec4 ellipse(vec2 pos) {
-	const vec2 position = ellipse_positions[v_index];
-	const vec2 size = ellipse_sizes[v_index];
-
-	const vec2 diff = (pos - position) / size;
-
-	if (diff.x * diff.x + diff.y * diff.y <= 0.25) {
+vec4 ellipse() {
+	if (v_texture_coords.x * v_texture_coords.x + v_texture_coords.y * v_texture_coords.y <= 0.25) {
 		return v_color;
 	}
 
@@ -56,7 +42,7 @@ vec4 ellipse(vec2 pos) {
 }
 
 vec4 line(vec2 pos) {
-    const vec2 diff = min_distance_line(line_points[v_index].zw, line_points[v_index].xy, pos);
+    const vec2 diff = min_distance_line(line_points[v_shape_index].zw, line_points[v_shape_index].xy, pos);
 
 	if (diff.x * diff.x + diff.y * diff.y <= 0.25) {
 		return v_color;
@@ -88,7 +74,7 @@ void main() {
 			break;
 
 		case 1:
-			color = ellipse(pos);
+			color = ellipse();
 			break;
 			
 		case 2:

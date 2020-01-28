@@ -14,6 +14,34 @@ macro_rules! create_impl {
     };
 }
 
+#[macro_export]
+macro_rules! transform {
+    ($shape:ident) => {
+        impl<'s> $shape<'s> {
+            pub fn transform(mut self, transform: Transform) -> Self {
+                self.transform = self.transform.transform(transform);
+                self
+            }
+
+            pub fn position(mut self, position: Vec2<f32>) -> Self {
+                self.transform.position = position;
+                self
+            }
+
+            pub fn size(mut self, size: Vec2<f32>) -> Self {
+                self.transform.size = size;
+                self
+            }
+
+            pub fn rotation(mut self, rotation: f32) -> Self {
+                self.transform.rotation = rotation;
+                self
+            }
+        }
+    }
+}
+
+
 create_impl!(position, Vec2<f32>);
 create_impl!(size, Vec2<f32>);
 create_impl!(rotation, f32);
@@ -25,4 +53,3 @@ create_impl!(smooth, bool);
 create_impl!(width, f32);
 create_impl!(scale, f32);
 create_impl!(depth, f32);
-create_impl!(pixel_mode, bool);
