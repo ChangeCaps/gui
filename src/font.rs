@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io::Read;
-use glium::texture::Texture2dDataSource;
 
 use rusttype::{Rect, Point};
 
@@ -56,7 +55,7 @@ impl FontTexture {
     /// texture.  Complexity grows as `font_size**2 * characters_list.len()`.
     /// **Avoid rasterizing everything at once as it will be slow and end up in
     /// out of memory abort.**
-    pub fn new<R, F, I>(facade: &F, font: R, font_size: u32, characters_list: I)
+    pub fn new<R, F, I>(_facade: &F, font: R, font_size: u32, characters_list: I)
                         -> Result<(glium::texture::RawImage2d<f32>, HashMap<char, CharacterInfos>), Error>
         where R: Read, F: Facade, I: IntoIterator<Item=char>
     {

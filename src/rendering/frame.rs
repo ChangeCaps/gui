@@ -1,12 +1,6 @@
 use crate::{
     rendering::*,
-    math::*,
 };
-use glium::{
-    texture::texture2d::Texture2d,
-    Surface,
-};
-use super::super::*;
 
 pub trait Canvas<'f> {
     fn drawing_data(&mut self) -> &mut DrawingData;

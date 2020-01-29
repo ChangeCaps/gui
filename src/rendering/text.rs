@@ -1,13 +1,10 @@
-use super::super::*;
+use crate::*;
 use math::*;
-use glium;
-use glium::Surface;
 
 pub struct Text<'s> {
     font: String,
-    position: Vec2<f32>,
-    scale: f32,
-    rotation: f32,
+    transform: Transform,
+    parent: Transform,
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
@@ -21,9 +18,8 @@ impl<'s> Text<'s> {
     pub fn new(data: &'s mut DrawingData, font: String) -> Self {
         Self {
             font,
-            position: Vec2::new(0.0, 0.0),
-            scale: 0.2,
-            rotation: 0.0,
+            transform: Transform::new(),
+            parent: Transform::new(),
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
@@ -42,15 +38,17 @@ impl<'s> Text<'s> {
         self
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(mut self) -> Transform {
+        self.transform = self.transform.transform(self.parent);
+
         // don't draw if there is no text
         if self.text.len() == 0 {
-            return;
+            return self.transform;
         }
 
         self.drawing_data.pixel_window_dimensions.map(|dims| {
-            self.position /= dims.y / 2.0;
-            self.scale /= dims.y / 2.0;
+            self.transform.position /= dims.y / 2.0;
+            self.transform.size /= dims.y / 2.0;
         }); 
 
         let index = self.drawing_data.font_indecies.get(&self.font).unwrap();
@@ -137,9 +135,7 @@ impl<'s> Text<'s> {
         for vert in verts {
             let mut position = vert.0 - pivot;
 
-            position *= self.scale; 
-            position *= Mat2::<f32>::from_radians(self.rotation);
-            position += self.position;
+            position.transform(self.transform);
 
             if self.scaling {
                 position.x /= self.drawing_data.scaled_aspect_ratio;
@@ -152,7 +148,8 @@ impl<'s> Text<'s> {
             self.drawing_data.verts.push(
                 super::Vertex {
                     position: position.as_array(),
-                    texture_coords: (vert.1 * dimensions / self.drawing_data.font_atlas_dimensions).as_array(),
+                    texture_coords: (vert.1 * dimensions / self.drawing_data.font_atlas_dimensions + 
+                                     font_position).as_array(),
                     color: self.color,
                     depth: self.depth,
                     shape: 4,
@@ -162,14 +159,13 @@ impl<'s> Text<'s> {
                 }
             );
         }
+
+        self.transform
     }
 }
 
-position!(Text);
-rotation!(Text);
 color!(Text);
 anchor!(Text);
 pivot!(Text);
 scaling!(Text);
-scale!(Text);
 depth!(Text);

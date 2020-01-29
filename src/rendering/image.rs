@@ -4,11 +4,10 @@ use math::*;
 pub struct Image<'s> {
     image: String,
     transform: Transform,     
-    rotation: f32,
+    parent: Transform,
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
-    scale: f32,
     scaling: bool,
     depth: f32,
     drawing_data: &'s mut DrawingData,
@@ -31,18 +30,17 @@ impl<'s> Image<'s> {
                 },
                 .. Default::default()
             },
-            rotation: 0.0,
+            parent: Transform::new(),
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
-            scale: 0.0,
             scaling: false,
             depth: 0.0,
             drawing_data: data,
         }
     } 
 
-    pub fn draw(mut self) {
+    pub fn draw(mut self) -> Transform {
         let index = *self.drawing_data.image_indecies.get(&self.image).unwrap();
 
         let image_position = self.drawing_data.image_positions[index];
@@ -50,19 +48,17 @@ impl<'s> Image<'s> {
         let dimensions = self.drawing_data.image_dimensions[index];
         let dimensions = Vec2::new(dimensions.x as f32, dimensions.y as f32);
 
-        let ratio = dimensions.x / dimensions.y;
+        self.transform = self.transform.transform(self.parent);
 
         self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.transform.position /= dims.y / 2.0;
             self.transform.size /= dims.y / 2.0;
         }); 
 
-        self.transform.size *= self.scale;
-
         for vert in &RECT_VERTS {
             let mut position = *vert - self.pivot.as_vec() / 2.0;
 
-            position = position.transform(self.transform); 
+            position = position.transform(self.transform);
 
             if self.scaling {
                 position.x /= self.drawing_data.scaled_aspect_ratio;
@@ -87,6 +83,8 @@ impl<'s> Image<'s> {
 
 
         self.drawing_data.rects += 1;    
+
+        self.transform
     }
 }
 
@@ -96,4 +94,3 @@ anchor!(Image);
 pivot!(Image);
 scaling!(Image);
 depth!(Image);
-scale!(Image);

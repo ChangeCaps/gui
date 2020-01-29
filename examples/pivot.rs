@@ -23,13 +23,13 @@ impl State for PivotExample {
 
         frame.rect()
             .size(Vec2::new(0.2, 0.2))
-            .transform(p)
+            .parent(p)
             .draw();
 
         frame.rect()
             .position(Vec2::new(0.0, 0.5))
             .size(Vec2::new(0.3, 0.3))
-            .transform(p)
+            .parent(p)
             .draw();
 
         self.rotation += _state_data.delta_time;

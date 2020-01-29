@@ -19,7 +19,12 @@ macro_rules! transform {
     ($shape:ident) => {
         impl<'s> $shape<'s> {
             pub fn transform(mut self, transform: Transform) -> Self {
-                self.transform = self.transform.transform(transform);
+                self.transform = transform;
+                self
+            }
+
+            pub fn parent(mut self, parent: Transform) -> Self {
+                self.parent = parent;
                 self
             }
 
@@ -30,6 +35,11 @@ macro_rules! transform {
 
             pub fn size(mut self, size: Vec2<f32>) -> Self {
                 self.transform.size = size;
+                self
+            }
+            
+            pub fn scale(mut self, scale: f32) -> Self {
+                self.transform.size = self.transform.size.normalize() * scale;
                 self
             }
 

@@ -62,7 +62,7 @@ fn calculate_rects(
     let mut image_rects = Vec::new();
 
     for (dimensions, image_index) in dimensions {
-        let space = empty_spaces.iter().enumerate().rev().find(|(index, space)| {
+        let space = empty_spaces.iter().enumerate().rev().find(|(_, space)| {
             dimensions.x <= space.width && dimensions.y <= space.height
         });
 

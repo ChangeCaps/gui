@@ -3,6 +3,7 @@ use math::*;
 
 pub struct Ellipse<'s> {
     transform: Transform,
+    parent: Transform,
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
@@ -15,6 +16,7 @@ impl<'s> Ellipse<'s> {
     pub fn new(data: &'s mut DrawingData) -> Self {
         Self {
             transform: Transform::new(),
+            parent: Transform::new(),
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
@@ -24,7 +26,9 @@ impl<'s> Ellipse<'s> {
         }
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self) -> Transform {
+        self.transform = self.transform.transform(self.parent);
+
         self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.transform.position /= dims.y / 2.0;
             self.transform.size /= dims.y / 2.0;
@@ -56,6 +60,8 @@ impl<'s> Ellipse<'s> {
             });
 
         }
+
+        self.transform
     }
 }
 

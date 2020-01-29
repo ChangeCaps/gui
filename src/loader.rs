@@ -5,7 +5,6 @@ use super::font::CharacterInfos;
 use std::io::Read;
 use glium::texture::RawImage2d;
 use std::collections::HashMap;
-use glium::texture::Texture2dDataSource;
 
 pub struct Loader<'s> {
     pub(crate) display: &'s glium::Display,
