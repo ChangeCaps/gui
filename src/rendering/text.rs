@@ -96,20 +96,6 @@ impl<'s> Text<'s> {
                 Vec2::new(left_coord, bottom_coord),
                 Vec2::new(infos.tex_coords.0, infos.tex_coords.1 + infos.tex_size.1),
             ));
-            
-
-
-            // top-right vertex
-            verts.push((
-                Vec2::new(right_coord, top_coord),
-                Vec2::new(infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1),
-            ));
-
-            // bottom-left vertex
-            verts.push((
-                Vec2::new(left_coord, bottom_coord),
-                Vec2::new(infos.tex_coords.0, infos.tex_coords.1 + infos.tex_size.1),
-            ));
 
             // bottom-right vertex
             verts.push((
@@ -169,3 +155,4 @@ anchor!(Text);
 pivot!(Text);
 scaling!(Text);
 depth!(Text);
+transform!(Text);

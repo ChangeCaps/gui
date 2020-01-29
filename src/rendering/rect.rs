@@ -25,7 +25,7 @@ impl<'s> Rect<'s> {
             drawing_data: data,
         }
     }
-    
+
     pub fn draw(&mut self) -> Transform {
         self.transform = self.transform.transform(self.parent);
 
@@ -53,14 +53,11 @@ impl<'s> Rect<'s> {
                 color: self.color,
                 depth: self.depth,
                 shape: 0,
-                shape_index: self.drawing_data.rects,
+                shape_index: 0,
                 mask_length: 0,
                 mask_index: 0,
             });
         }
-
-
-        self.drawing_data.rects += 1;
 
         self.transform
     }

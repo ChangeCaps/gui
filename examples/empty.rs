@@ -7,13 +7,11 @@ struct ImageExample;
 
 impl State for ImageExample {
     fn draw(&mut self, frame: &mut Frame, data: &StateData) {   
-        for i in 0..50_000 {
-            frame.ellipse()
+        for i in 0..10_000 {
+            frame.rect()
                 .position(Vec2::new(i as f32 / 10_000.0 - 0.5, i as f32 / 10_000.0 - 0.5))
                 .draw();
         }
-        
-        println!("\r{}", 1.0/data.delta_time);
     }
 }
 

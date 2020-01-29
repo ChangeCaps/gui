@@ -195,6 +195,7 @@ impl Application {
 
         // used to ensure that we don't go above the desired frame rate
         let mut next_frame_time = Instant::now() + self.frame_time;
+        let mut last_frame_vertex_count = 128;
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
@@ -381,22 +382,25 @@ impl Application {
             // run state functions
             let trans = {
                 // construct drawing data
-                let mut drawing_data = DrawingData::default();
+                let mut drawing_data = DrawingData {
+                    pixel_window_dimensions:    None,
+                    line_points:                Vec::new(),
+                    line_widths:                Vec::new(),
+                    verts:                      Vec::with_capacity(last_frame_vertex_count),
 
-                // FIXME: cloning is bad, find another way
-                drawing_data.image_indecies = image_indecies.clone();
-                drawing_data.image_dimensions = image_dimensions.clone();
-                drawing_data.font_indecies = font_indecies.clone();
-                drawing_data.font_dimensions = font_dimensions.clone();
-                drawing_data.font_character_infos = font_character_infos.clone();
-
-                // set variables
-                drawing_data.scaled_aspect_ratio = scaled_aspect_ratio;
-                drawing_data.aspect_ratio = aspect_ratio;
-                drawing_data.font_atlas_dimensions = font_atlas_dimensions;
-                drawing_data.font_positions = font_positions.clone();
-                drawing_data.image_atlas_dimensions = image_atlas_dimensions;
-                drawing_data.image_positions = image_positions.clone();
+                    // FIXME: cloning is bad, find another way
+                    image_indecies:             image_indecies.clone(),
+                    image_dimensions:           image_dimensions.clone(),
+                    font_indecies:              font_indecies.clone(),
+                    font_dimensions:            font_dimensions.clone(),
+                    font_character_infos:       font_character_infos.clone(),
+                    scaled_aspect_ratio:        scaled_aspect_ratio,
+                    aspect_ratio:               aspect_ratio,
+                    font_atlas_dimensions:      font_atlas_dimensions,
+                    font_positions:             font_positions.clone(),
+                    image_atlas_dimensions:     image_atlas_dimensions,
+                    image_positions:            image_positions.clone(),
+                };
 
                 let mut _frame = Frame { 
                     drawing_data: &mut drawing_data,
@@ -413,13 +417,17 @@ impl Application {
                     &mut _frame,
                     &state_data,
                 );
-    
+
                 // run shadow draw for all states
                 states.iter_mut().for_each(|state| state.shadow_draw(
                     &mut _frame,
                     &state_data,
                 )); 
     
+                // set last frame vertex count
+                last_frame_vertex_count = _frame.drawing_data.verts.len();
+
+                // clear color
                 texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0); 
 
                 // line buffers
@@ -458,7 +466,7 @@ impl Application {
                 if _frame.drawing_data.verts.len() > 0 {
                     // FIXME: creating a new vertex buffer every frame is slow, but for some
                     // reason it would keep crashing if I were to write
-                    
+
                     if self.depth_sorting {
                         _frame.drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap());
                     }
@@ -470,19 +478,22 @@ impl Application {
                         .. Default::default()
                     };
     
+                    let t = std::time::Instant::now();
+                
                     // draw the frame buffer to the window and handle errors
                     let _ = frame.draw(&vertex_buffer,
-                                       &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
+                                       &glium::index::NoIndices(glium::index::PrimitiveType::TriangleStrip), 
                                        &simple_transform_fill,
                                        &uniforms,
                                        &draw_parameters);
+
+                    
+                    frame.finish()
+                        .expect("GUI::APPLICATION Failed to finish frame");
                 }
    
                 trans
             };
-
-            frame.finish()
-                .expect("GUI::APPLICATION Failed to finish frame");
             
             // 
             // transition handling

@@ -9,6 +9,7 @@ pub struct Transform {
 }
 
 impl Transform {
+    #[inline]
     pub fn new() -> Self {
         Transform {
             position: Vec2::new(0.0, 0.0),
@@ -17,6 +18,7 @@ impl Transform {
         }
     }
 
+    #[inline]
     pub fn transform(mut self, other: Transform) -> Self {
         self.position *= other.size;
         self.position *= Mat2::<f32>::from_radians(other.rotation);

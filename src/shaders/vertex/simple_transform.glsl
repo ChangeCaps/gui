@@ -3,7 +3,6 @@
 in vec2 position;
 in vec2 texture_coords;
 in vec4 color;
-in float depth;
 in int shape;
 in int shape_index;
 
@@ -13,7 +12,7 @@ flat out int v_shape;
 flat out int v_shape_index;
 
 void main() {
-    gl_Position = vec4(position, depth, 1.0);
+    gl_Position = vec4(position, 0.0, 1.0);
 
 	v_texture_coords = texture_coords;
 	v_color = color;

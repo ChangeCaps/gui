@@ -81,9 +81,6 @@ impl<'s> Image<'s> {
             });
         }
 
-
-        self.drawing_data.rects += 1;    
-
         self.transform
     }
 }

@@ -20,11 +20,8 @@ pub use mask::*;
 use crate::drawing_data::*;
 use crate::math::*;
 
-pub(crate) const RECT_VERTS: [Vec2<f32>; 6] = [
+pub(crate) const RECT_VERTS: [Vec2<f32>; 4] = [
     Vec2 { x: -0.5, y: -0.5 },
-    Vec2 { x:  0.5, y: -0.5 },
-    Vec2 { x: -0.5, y:  0.5 },
-
     Vec2 { x:  0.5, y: -0.5 },
     Vec2 { x: -0.5, y:  0.5 }, 
     Vec2 { x:  0.5, y:  0.5 },
@@ -46,7 +43,6 @@ glium::implement_vertex!(Vertex,
                          position, 
                          texture_coords, 
                          color,
-                         depth, 
                          shape, 
                          shape_index,
                          mask_length,
