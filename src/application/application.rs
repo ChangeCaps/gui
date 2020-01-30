@@ -383,7 +383,7 @@ impl Application {
             let trans = {
                 // construct drawing data
                 let mut drawing_data = DrawingData {
-                    pixel_window_dimensions:    None,
+                    pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, size.y as f32)),
                     line_points:                Vec::new(),
                     line_widths:                Vec::new(),
                     verts:                      Vec::with_capacity(last_frame_vertex_count),

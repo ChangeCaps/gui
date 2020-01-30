@@ -60,8 +60,6 @@ impl<'s> Line<'s> {
             v0,
             v1,
             v2,
-            v1,
-            v2,
             v3
         ];
 

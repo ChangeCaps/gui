@@ -9,13 +9,11 @@ struct ImageExample {
 impl State for ImageExample {
     fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
         frame.image("assets/test_image.png")
-            .scale(10.0)
-            .position(math::Vec2::new(self.x, 0.0))
+            //.scale(10.0)
+            //.position(math::Vec2::new(self.x, 0.0))
             //.anchor(Anchor::MiddleLeft)
             //.pivot(Anchor::MiddleLeft)
             .draw();
-
-        self.x += 0.01 * _state_data.delta_time;
     }
 }
 
