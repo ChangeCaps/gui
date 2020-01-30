@@ -17,7 +17,7 @@ impl<'s> Image<'s> {
     pub fn new(data: &'s mut DrawingData, image: String) -> Self {
         let index = *data.image_indecies.get(&image).unwrap();
 
-        let dimensions = data.image_positions[index];
+        let dimensions = data.image_dimensions[index];
         let dimensions = Vec2::new(dimensions.x as f32, dimensions.y as f32);
 
         Self {
@@ -59,7 +59,7 @@ impl<'s> Image<'s> {
             let mut position = *vert - self.pivot.as_vec() / 2.0;
 
             position = position.transform(self.transform);
-
+            
             if self.scaling {
                 position.x /= self.drawing_data.scaled_aspect_ratio;
             } else { 

@@ -424,6 +424,8 @@ impl Application {
                     &state_data,
                 )); 
     
+                assert!(_frame.drawing_data.verts.len() % 4 == 0, "Something went wrong with the verts");
+
                 // set last frame vertex count
                 last_frame_vertex_count = _frame.drawing_data.verts.len();
 
