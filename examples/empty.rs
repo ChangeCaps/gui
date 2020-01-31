@@ -3,15 +3,20 @@ extern crate gui;
 use gui::*;
 use math::*;
 
-struct ImageExample;
+struct ImageExample {
+    x: f32
+}
 
 impl State for ImageExample {
     fn draw(&mut self, frame: &mut Frame, data: &StateData) {   
-        for i in 0..10_000 {
+        for i in 0..100_000 {
             frame.rect()
-                .position(Vec2::new(i as f32 / 10_000.0 - 0.5, i as f32 / 10_000.0 - 0.5))
+                .position(Vec2::new(i as f32 / 10_000.0 - 0.5 + self.x, i as f32 / 10_000.0 - 0.5))
                 .draw();
         }
+
+        self.x += data.delta_time;
+        println!("{}", 1.0/data.delta_time);
     }
 }
 
@@ -33,6 +38,8 @@ fn main() {
             loader.load_image("assets/spider_planet.png", PNG);
             loader.load_image("assets/velocity_arrow.png", PNG);
 
-            Box::new(ImageExample)
+            Box::new(ImageExample {
+                x: 0.0,
+            })
         });
 }

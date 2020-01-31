@@ -20,8 +20,11 @@ pub use mask::*;
 use crate::drawing_data::*;
 use crate::math::*;
 
-pub(crate) const RECT_VERTS: [Vec2<f32>; 4] = [
+pub(crate) const RECT_VERTS: [Vec2<f32>; 6] = [
     Vec2 { x: -0.5, y: -0.5 },
+    Vec2 { x:  0.5, y: -0.5 },
+    Vec2 { x: -0.5, y:  0.5 }, 
+
     Vec2 { x:  0.5, y: -0.5 },
     Vec2 { x: -0.5, y:  0.5 }, 
     Vec2 { x:  0.5, y:  0.5 },

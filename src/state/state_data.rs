@@ -2,7 +2,8 @@ use super::super::*;
 use math::*;
 use std::collections::HashSet;
 
-pub struct StateData<'s> {
+#[derive(Clone)]
+pub struct StateData {
     pub delta_time: f32, 
     pub frame_dimensions: Vec2<f32>,
     pub scaled_frame_dimensions: Vec2<f32>,
@@ -10,15 +11,15 @@ pub struct StateData<'s> {
     pub aspect_ratio: f32,
     pub mouse_position: Vec2<f32>,
     pub scaled_mouse_position: Vec2<f32>,
-    pub keys_pressed: &'s HashSet<KeyCode>,
-    pub keys_held: &'s HashSet<KeyCode>,
-    pub keys_released: &'s HashSet<KeyCode>,
-    pub mouse_buttons_pressed: &'s HashSet<MouseButton>,
-    pub mouse_buttons_held: &'s HashSet<MouseButton>,
-    pub mouse_buttons_released: &'s HashSet<MouseButton>,
+    pub keys_pressed: HashSet<KeyCode>,
+    pub keys_held: HashSet<KeyCode>,
+    pub keys_released: HashSet<KeyCode>,
+    pub mouse_buttons_pressed: HashSet<MouseButton>,
+    pub mouse_buttons_held: HashSet<MouseButton>,
+    pub mouse_buttons_released: HashSet<MouseButton>,
 }
 
-impl<'s> StateData<'s> {
+impl StateData {
     pub fn key_pressed(&self, key_code: KeyCode) -> bool {
         self.keys_pressed.contains(&key_code)
     }

@@ -2,7 +2,7 @@ use super::*;
 use math::*;
 use std::collections::HashMap;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct DrawingData {
     pub(crate) verts: Vec<rendering::Vertex>, 
     pub(crate) line_points: Vec<[f32; 4]>,

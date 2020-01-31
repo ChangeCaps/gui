@@ -3,6 +3,6 @@ use super::State;
 pub enum Transition {
     None,
     Pop,
-    Push(Box<dyn State>),
-    Trans(Box<dyn State>),
+    Push(Box<dyn State + Send>),
+    Trans(Box<dyn State + Send>),
 }

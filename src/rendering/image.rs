@@ -24,9 +24,9 @@ impl<'s> Image<'s> {
             image,
             transform: Transform {
                 size: if data.pixel_window_dimensions.is_some() {
-                    Vec2::new(dimensions.x/dimensions.y, 1.0)
-                } else {
                     dimensions
+                } else {
+                    Vec2::new(dimensions.x/dimensions.y, 1.0)
                 },
                 .. Default::default()
             },
