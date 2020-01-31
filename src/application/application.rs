@@ -538,6 +538,26 @@ impl Application {
                     image_positions:            image_positions.clone(),
                 });
 
+                {
+                    let mut data = state_data.lock().unwrap();
+
+                    *data = StateData {
+                        delta_time: 0.016,
+                        frame_dimensions: Vec2::new(aspect_ratio * 2.0, 2.0),
+                        scaled_frame_dimensions: Vec2::new(aspect_ratio * 2.0, 2.0),
+                        window_dimensions: Vec2::new(self.window_size.x as f32, self.window_size.y as f32),
+                        aspect_ratio,
+                        mouse_position,
+                        scaled_mouse_position,
+                        keys_pressed: keys_pressed.clone(),
+                        keys_held: keys_held.clone(),
+                        keys_released: keys_released.clone(),
+                        mouse_buttons_pressed: mouse_buttons_pressed.clone(),
+                        mouse_buttons_held: mouse_buttons_held.clone(),
+                        mouse_buttons_released: mouse_buttons_released.clone(),
+                    };
+                }
+
                 let drawing_data = drawing_data_receiver.try_recv();
 
                 if drawing_data.is_err() {

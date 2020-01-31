@@ -32,7 +32,11 @@ impl State for PivotExample {
             .parent(p)
             .draw();
 
-        self.rotation += _state_data.delta_time;
+        if _state_data.key_held(KeyCode::G) {
+            self.rotation -= _state_data.delta_time;
+        } else {
+            self.rotation += _state_data.delta_time;
+        }
     }
 }
 
