@@ -4,6 +4,7 @@ use math::*;
 pub struct Ellipse<'s> {
     transform: Transform,
     parent: Transform,
+    masks: (i32, i32),
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
@@ -13,10 +14,11 @@ pub struct Ellipse<'s> {
 }
 
 impl<'s> Ellipse<'s> {
-    pub fn new(data: &'s mut DrawingData) -> Self {
+    pub fn new(data: &'s mut DrawingData, masks: (i32, i32)) -> Self {
         Self {
             transform: Transform::new(),
             parent: Transform::new(),
+            masks,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
@@ -55,8 +57,8 @@ impl<'s> Ellipse<'s> {
                 depth: self.depth,
                 shape: 1,
                 shape_index: 0,
-                mask_length: 0,
-                mask_index: 0,
+                mask_length: self.masks.1,
+                mask_index: self.masks.0,
             });
 
         }

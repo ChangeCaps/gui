@@ -86,7 +86,7 @@ impl Application {
     }
 
     pub fn run<F>(self, mut start: F) 
-        where F: FnMut(&mut super::super::Loader) -> Box<dyn State + Send>
+        where F: FnMut(&mut super::super::Loader) -> Box<dyn State>
     {
         //
         // initialization
@@ -178,7 +178,7 @@ impl Application {
             text_inputs: &mut text_inputs,
         };
 
-        let states: Arc<Mutex<Vec<Box<dyn State + Send>>>> = Arc::new(Mutex::new(vec![start(&mut loader)]));
+        let states: Arc<Mutex<Vec<Box<dyn State>>>> = Arc::new(Mutex::new(vec![start(&mut loader)]));
 
         
         let (image_atlas, image_positions, image_atlas_dimensions) = crate::texture_atlas::crate_atlas(&display, &mut loader.images, &mut loader.image_dimensions);
@@ -244,13 +244,20 @@ impl Application {
         let (drawing_data_sender, drawing_data_receiver) = sync_channel::<DrawingData>(1);
         let (main_drawing_data_sender, main_drawing_data_receiver) = sync_channel::<DrawingData>(1);
 
-        let draw_thread = {    
+        // honestly this code is garbage, I hate it
+
+        let _draw_thread = {    
             let drawing_data = DrawingData {
                 pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, 
                                                                                         size.y as f32)),
                 line_points:                Vec::new(),
                 line_widths:                Vec::new(),
                 verts:                      Vec::new(),
+
+                mask_shapes:                Vec::new(),
+                rect_mask_positions:        Vec::new(),
+                rect_mask_sizes:            Vec::new(),
+                rect_mask_rotations:        Vec::new(),
 
                 // FIXME: cloning is bad, find another way
                 image_indecies:             image_indecies.clone(),
@@ -277,8 +284,9 @@ impl Application {
                     let draw_start = Instant::now();
 
                     {
-                        let mut states = states.lock().unwrap();
-                        //println!("{:?}", Instant::now().duration_since(draw_start));
+                        let states = { 
+                            states.lock().unwrap().clone()
+                        };
                         
                         let mut drawing_data = main_drawing_data_receiver.try_recv().unwrap_or_else(|_| drawing_data.clone());
                         
@@ -302,7 +310,7 @@ impl Application {
                         );
 
                         // run shadow draw for all states
-                        states.iter_mut().for_each(|state| state.shadow_draw(
+                        states.iter().for_each(|state| state.shadow_draw(
                             &mut frame,
                             &state_data,
                         )); 
@@ -324,7 +332,7 @@ impl Application {
         // update thread
         //
 
-        let update_thread = {
+        let _update_thread = {
             let states = states.clone();
             let state_data = state_data.clone();
             let mut last_update_time = Instant::now();
@@ -424,7 +432,7 @@ impl Application {
                             position.y as f32
                         ) * window_dimensions_multiplier 
                           / window_dimensions * 2.0 - 1.0) * if let Some(size) = self.pixel_window_size {
-                              size.y as f32 / 2.0
+                              size.y as f32
                           } else {
                               1.0
                           };
@@ -521,8 +529,6 @@ impl Application {
                 }, 
                 _ => return,
             }
-
-            // get a frame for drawing to the window and clear it
         
             let (w, h, aspect_ratio) = if let Some(size) = self.pixel_window_size {
                 (size.x, size.y, size.x as f32/size.y as f32)
@@ -535,9 +541,17 @@ impl Application {
                 // FIXME: all of the is bad, please clean this up later
                 let _ = main_drawing_data_sender.try_send(DrawingData {
                     pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, size.y as f32)),
+
+
                     line_points:                Vec::new(),
                     line_widths:                Vec::new(),
                     verts:                      Vec::new(),
+
+                    // masks
+                    mask_shapes:                Vec::new(),
+                    rect_mask_positions:        Vec::new(),
+                    rect_mask_sizes:            Vec::new(),
+                    rect_mask_rotations:        Vec::new(),
     
                     // FIXME: cloning is bad, find another way
                     image_indecies:             image_indecies.clone(),
@@ -553,6 +567,7 @@ impl Application {
                     image_positions:            image_positions.clone(),
                 });
 
+                // something something state_data
                 {
                     let mut data = state_data.lock().unwrap();
 
@@ -585,7 +600,9 @@ impl Application {
                 texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0); 
 
                 // line buffers only remake buffers if needed
-                if line_point_buffer.len() == drawing_data.line_points.len() && drawing_data.line_points.len() != 0 {
+                if line_point_buffer.len() == drawing_data.line_points.len() && 
+                    drawing_data.line_points.len() != 0 
+                {
                     line_point_buffer.write(&drawing_data.line_points);
                 } else if drawing_data.line_points.len() > 0 || line_point_buffer.len() > 0 {
                     line_point_buffer = glium::buffer::Buffer::<[[f32; 4]]>::new(
@@ -596,7 +613,9 @@ impl Application {
                     ).unwrap();
                 }
 
-                if line_width_buffer.len() == drawing_data.line_widths.len() && drawing_data.line_widths.len() != 0 {
+                if line_width_buffer.len() == drawing_data.line_widths.len() && 
+                    drawing_data.line_widths.len() != 0 
+                {
                     line_width_buffer.write(&drawing_data.line_widths);
                 } else if drawing_data.line_widths.len() > 0 || line_width_buffer.len() > 0 {
                     line_width_buffer = glium::buffer::Buffer::<[f32]>::new(
@@ -606,6 +625,36 @@ impl Application {
                         glium::buffer::BufferMode::Default,
                     ).unwrap();
                 }
+
+                // masks
+                let mask_shape_buffer = glium::buffer::Buffer::<[[i32; 2]]>::new(
+                    &display, 
+                    &drawing_data.mask_shapes,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let rect_mask_position_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
+                    &display, 
+                    &drawing_data.rect_mask_positions,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let rect_mask_size_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
+                    &display, 
+                    &drawing_data.rect_mask_sizes,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let rect_mask_rotation_buffer = glium::buffer::Buffer::<[[[f32; 2]; 2]]>::new(
+                    &display, 
+                    &drawing_data.rect_mask_rotations,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
 
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
@@ -622,7 +671,17 @@ impl Application {
                     // text
                     font_atlas: &font_atlas,
                     font_atlas_dimensions: font_atlas_dimensions.as_array(),
-                }; if drawing_data.verts.len() > 0 { 
+
+                    // masks
+                    mask_shape_buffer: &mask_shape_buffer,
+
+                    // rect mask
+                    rect_mask_position_buffer: &rect_mask_position_buffer,
+                    rect_mask_size_buffer: &rect_mask_size_buffer,
+                    rect_mask_rotation_buffer: &rect_mask_rotation_buffer,
+                }; 
+
+                if drawing_data.verts.len() > 0 { 
                     if self.depth_sorting {
                         drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap());
                     }
@@ -652,11 +711,7 @@ impl Application {
                     frame.finish()
                         .expect("GUI::APPLICATION Failed to finish frame");
                 }
-            };
-            
-            // 
-            // transition handling
-            //
+            }; 
 
             // reset keypressed and released
             keys_pressed = HashSet::new();

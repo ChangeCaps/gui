@@ -6,30 +6,44 @@ pub trait Canvas<'f> {
     fn drawing_data(&mut self) -> &mut DrawingData;
 
     fn rect(&mut self) -> Rect {
-        Rect::new(self.drawing_data())
+        let masks = self.masks();
+
+        Rect::new(self.drawing_data(), masks)
     }
 
     fn line(&mut self) -> Line {
-        Line::new(self.drawing_data())
+        let masks = self.masks();
+
+        Line::new(self.drawing_data(), masks)
     }
 
     fn ellipse(&mut self) -> Ellipse {
-        Ellipse::new(self.drawing_data())
+        let masks = self.masks();
+
+        Ellipse::new(self.drawing_data(), masks)
     }
 
     fn image<P>(&mut self, image: P) -> Image
         where P: Into<String>
     {
-        Image::new(self.drawing_data(), image.into())
+        let masks = self.masks();
+
+        Image::new(self.drawing_data(), image.into(), masks)
     }
 
     fn text<P>(&mut self, font: P) -> Text
         where P: Into<String>
     {
-        Text::new(self.drawing_data(), font.into())
+        let masks = self.masks();
+
+        Text::new(self.drawing_data(), font.into(), masks)
     }
 
     fn masks(&self) -> (i32, i32);
+
+    fn rect_mask(&mut self) -> RectMask {
+        RectMask::new(self.drawing_data())
+    }
 }
 
 pub struct Frame<'f> { 

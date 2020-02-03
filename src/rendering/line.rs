@@ -5,6 +5,7 @@ pub struct Line<'s> {
     p0: Vec2<f32>,
     p1: Vec2<f32>,
     width: f32,
+    masks: (i32, i32),
     smooth: bool,
     color: [f32; 4],
     anchor: Anchor,
@@ -14,11 +15,12 @@ pub struct Line<'s> {
 }
 
 impl<'s> Line<'s> {
-    pub fn new(data: &'s mut DrawingData) -> Self {
+    pub fn new(data: &'s mut DrawingData, masks: (i32, i32)) -> Self {
         Self {
             p0: Vec2::new(0.2, 0.2),
             p1: Vec2::new(-0.2, -0.2),
             width: 0.02,
+            masks,
             smooth: false,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
@@ -81,8 +83,8 @@ impl<'s> Line<'s> {
                 depth: self.depth,
                 shape: 2,
                 shape_index: self.drawing_data.line_points.len() as i32,
-                mask_length: 0,
-                mask_index: 0,
+                mask_length: self.masks.1,
+                mask_index: self.masks.0,
             });
         }
 
