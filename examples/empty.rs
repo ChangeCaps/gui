@@ -9,14 +9,21 @@ struct ImageExample {
 
 impl State for ImageExample {
     fn draw(&mut self, frame: &mut Frame, data: &StateData) {   
-        for i in 0..100_000 {
+        for i in 0..10_000 {
             frame.rect()
                 .position(Vec2::new(i as f32 / 10_000.0 - 0.5 + self.x, i as f32 / 10_000.0 - 0.5))
                 .draw();
         }
 
-        self.x += data.delta_time;
-        println!("{}", 1.0/data.delta_time);
+        frame.text("assets/test_font.ttf")
+            .text(format!("fps: {}", 1.0/data.delta_time))
+            .color(color::rgb(1.0, 0.0, 0.0))
+            .size(Vec2::new(0.1, 0.1))
+            .anchor(Anchor::TopLeft)
+            .pivot(Anchor::TopLeft)
+            .draw();
+
+        self.x += 0.1 * data.delta_time;
     }
 }
 
@@ -26,17 +33,7 @@ fn main() {
         .with_window_size(1000, 600)
         .with_depth_sorting(false)
         .run(|loader| {
-            loader.load_image("assets/ship.png", PNG);
-            loader.load_image("assets/test_image.png", PNG);
-            
-            loader.load_image("assets/brown_planet.png", PNG);
-            loader.load_image("assets/door.png", PNG);
-            loader.load_image("assets/minimap_frame.png", PNG);
-            loader.load_image("assets/red_planet.png", PNG);
-            loader.load_image("assets/satalite.png", PNG);
-            loader.load_image("assets/ship_part.png", PNG);
-            loader.load_image("assets/spider_planet.png", PNG);
-            loader.load_image("assets/velocity_arrow.png", PNG);
+            loader.load_font("assets/test_font.ttf", 100);
 
             Box::new(ImageExample {
                 x: 0.0,

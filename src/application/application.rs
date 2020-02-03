@@ -25,6 +25,7 @@ use std::collections::{HashMap, HashSet};
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::sync_channel;
+use std::sync::atomic::AtomicBool;
 
 pub struct Application {
     pub title: &'static str,
@@ -234,6 +235,8 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Starting threads");
 
+        let running = Arc::new(AtomicBool::new(true));
+
         //
         // drawing thread
         //
@@ -241,9 +244,10 @@ impl Application {
         let (drawing_data_sender, drawing_data_receiver) = sync_channel::<DrawingData>(1);
         let (main_drawing_data_sender, main_drawing_data_receiver) = sync_channel::<DrawingData>(1);
 
-        {    
-            let mut drawing_data = DrawingData {
-                pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, size.y as f32)),
+        let draw_thread = {    
+            let drawing_data = DrawingData {
+                pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, 
+                                                                                        size.y as f32)),
                 line_points:                Vec::new(),
                 line_widths:                Vec::new(),
                 verts:                      Vec::new(),
@@ -265,10 +269,11 @@ impl Application {
             let state_data = state_data.clone();
             let mut last_frame_vertex_count = 0;
             let frame_time = self.frame_time.clone();
+            let running = running.clone();
 
             // running drawing thread 
             thread::spawn(move || {
-                loop {
+                while running.load(std::sync::atomic::Ordering::SeqCst) {
                     let draw_start = Instant::now();
 
                     {
@@ -312,24 +317,28 @@ impl Application {
                         thread::sleep(duration);
                     });
                 }
-            });
-        }
+            })
+        };
 
         //
         // update thread
         //
 
-        {
+        let update_thread = {
             let states = states.clone();
             let state_data = state_data.clone();
             let mut last_update_time = Instant::now();
+            let running = running.clone();
 
             // running update thread
             thread::spawn(move || {
-                loop {
+                while running.load(std::sync::atomic::Ordering::SeqCst) {
                     let update_start = Instant::now();
 
                     {
+                        let delta_time = Instant::now().duration_since(last_update_time).as_secs_f32();
+                        last_update_time = Instant::now();
+
                         let mut states = states.lock().unwrap();
                         let mut state_data = {
                             state_data.lock().unwrap()
@@ -352,26 +361,35 @@ impl Application {
                             },
                             Transition::Pop => {
                                 states.pop();
+
+                                if states.len() == 0 {
+                                    running.store(false, std::sync::atomic::Ordering::SeqCst);
+                                }
                             },
                             Transition::None => (),
                         }
                         
-                        state_data.delta_time = Instant::now().duration_since(last_update_time).as_secs_f32();
-                        last_update_time = Instant::now();
+                        state_data.delta_time = delta_time;
                     }
                     
                     std::time::Duration::from_secs_f32(1.0/60.0).checked_sub(Instant::now().duration_since(update_start)).map(|duration| {
                         thread::sleep(duration);
                     });
                 }
-            });
-        }
+            })
+        };
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
 
         // main loop
         event_loop.run(move |event, _, flow| { 
+            if !running.load(std::sync::atomic::Ordering::SeqCst) {
+                *flow = ControlFlow::Exit;
+
+                return;
+            }
+
             // update next_frame_time
             if next_frame_time <= Instant::now() {
                 next_frame_time = Instant::now() + self.frame_time;
@@ -389,11 +407,7 @@ impl Application {
             let h = dims.1 as f32;
             
             // used for scaling shapes
-            let scaled_aspect_ratio = w / h;
-            
-            let frame_dimensions = Vec2::new(aspect_ratio * 2.0, 2.0);
-            let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio * 2.0, 2.0);
-            let window_dimensions = Vec2::new(w, h);
+            let scaled_aspect_ratio = w / h;  
 
             // event handling 
             match event {
@@ -518,6 +532,7 @@ impl Application {
           
             // run state functions
             {
+                // FIXME: all of the is bad, please clean this up later
                 let _ = main_drawing_data_sender.try_send(DrawingData {
                     pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, size.y as f32)),
                     line_points:                Vec::new(),
@@ -607,12 +622,7 @@ impl Application {
                     // text
                     font_atlas: &font_atlas,
                     font_atlas_dimensions: font_atlas_dimensions.as_array(),
-                };
-
-                if drawing_data.verts.len() > 0 {
-                    // FIXME: creating a new vertex buffer every frame is slow, but for some
-                    // reason it would keep crashing if I were to write
-
+                }; if drawing_data.verts.len() > 0 { 
                     if self.depth_sorting {
                         drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap());
                     }
@@ -655,7 +665,7 @@ impl Application {
             // reset mousepressed and released
             mouse_buttons_pressed = HashSet::new();
             mouse_buttons_released = HashSet::new();
-        });
+        }); 
     }
 }
 

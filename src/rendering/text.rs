@@ -127,15 +127,16 @@ impl<'s> Text<'s> {
 
         // calculate pivot
         let mut pivot = self.pivot.as_vec();
-        pivot.x *= total_text_width;
+        pivot.x *= total_text_width / 2.0;
         pivot.y += 0.5;
         pivot.y *= height;
 
-
         for vert in verts {
             let mut position = vert.0 - pivot;
+            
+            position.x -= total_text_width/2.0;
 
-            position.transform(self.transform);
+            position = position.transform(self.transform);
 
             if self.scaling {
                 position.x /= self.drawing_data.scaled_aspect_ratio;
