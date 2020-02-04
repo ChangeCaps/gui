@@ -40,8 +40,6 @@ impl<'s> Line<'s> {
         self.drawing_data.pixel_window_dimensions.map(|dims| {
             self.p0 /= dims.y / 2.0;
             self.p1 /= dims.y / 2.0;
-
-            self.width /= dims.y;        
         }); 
 
         let a = (self.p1 - self.p0).normalize();
@@ -89,6 +87,14 @@ impl<'s> Line<'s> {
                 mask_length: self.masks.1,
                 mask_index: self.masks.0,
             });
+        }   
+
+        if self.scaling {
+            self.p0.x /= self.drawing_data.scaled_aspect_ratio;
+            self.p1.x /= self.drawing_data.scaled_aspect_ratio;
+        } else { 
+            self.p0.x /= self.drawing_data.aspect_ratio;
+            self.p1.x /= self.drawing_data.aspect_ratio;
         }
 
         self.p0 += self.anchor.as_vec();

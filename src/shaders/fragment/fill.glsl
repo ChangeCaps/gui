@@ -66,9 +66,16 @@ vec4 ellipse() {
 }
 
 vec4 line(vec2 pos) {
-    const vec2 diff = min_distance_line(line_points[v_shape_index].zw, line_points[v_shape_index].xy, pos);
+	const float aspect_ratio = window_dimensions.x/window_dimensions.y;
 
-	if (diff.x * diff.x + diff.y * diff.y <= line_widths[v_shape_index]) {
+	vec2 p0 = line_points[v_shape_index].xy;
+	vec2 p1 = line_points[v_shape_index].zw;
+
+    vec2 diff = min_distance_line(p0, p1, pos);
+
+	diff.x *= aspect_ratio;
+
+	if (diff.x * diff.x + diff.y * diff.y <= pow(line_widths[v_shape_index] / 2.0, 2)) {
 		return v_color;
 	}
 
