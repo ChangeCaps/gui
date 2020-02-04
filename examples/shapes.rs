@@ -9,12 +9,12 @@ struct ShapeExample;
 impl State for ShapeExample {
     fn draw(&self, frame: &mut Frame, state_data: &StateData) {
         {
-            let p0 = Vec2::new(state_data.scaled_frame_dimensions.x / 2.0 - 0.2, -state_data.mouse_position.y);
-            let p1 = state_data.scaled_mouse_position;
+            let p0 = Vec2::new(state_data.frame_dimensions.x / 2.0 - 0.2, -state_data.mouse_position.y);
+            let p1 = state_data.mouse_position;
 
             frame.line()
                 .points(p0, p1)
-                .width(0.05)
+                .width(0.1)
                 .smooth(true)
                 .draw();
 
@@ -24,9 +24,9 @@ impl State for ShapeExample {
                     Vec2::new(-0.2, 0.8),
                     Vec2::new(-0.2, -0.8),
                 )
-                .width(0.05)
-                .smooth(true)
+                .width(0.1)
                 .anchor(Anchor::MiddleRight)
+                .smooth(true)
                 .draw();
 
             frame.rect()
@@ -42,7 +42,7 @@ impl State for ShapeExample {
                 Vec2::new(0.2, 0.8),
                 Vec2::new(0.2, -0.8),
             )
-            .width(0.05)
+            .width(0.1)
             .smooth(true)
             .anchor(Anchor::MiddleLeft)
             .draw();

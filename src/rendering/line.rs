@@ -58,7 +58,7 @@ impl<'s> Line<'s> {
             v3 += a * self.width;
         }
 
-        let verts = &[
+        let verts = &mut [
             v0,
             v1,
             v2,
@@ -66,21 +66,19 @@ impl<'s> Line<'s> {
             v1,
             v2,
             v3
-        ];
+        ]; 
 
-        for vert in verts {
-            let mut position = *vert;
-
+        for vert in verts.iter_mut() {
             if self.scaling {
-                position.x /= self.drawing_data.scaled_aspect_ratio;
+                vert.x /= self.drawing_data.scaled_aspect_ratio;
             } else { 
-                position.x /= self.drawing_data.aspect_ratio;
+                vert.x /= self.drawing_data.aspect_ratio;
             }
 
-            position += self.anchor.as_vec();
+            *vert += self.anchor.as_vec();
 
             self.drawing_data.verts.push(super::Vertex {
-                position: position.as_array(),
+                position: vert.as_array(),
                 texture_coords: (*vert + 0.5).as_array(),
                 color: self.color,
                 depth: self.depth,

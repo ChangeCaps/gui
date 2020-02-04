@@ -550,7 +550,7 @@ impl Application {
                 _ => return,
             }
         
-            let (w, h, aspect_ratio) = if let Some(size) = self.pixel_window_size {
+            let (_, _, aspect_ratio) = if let Some(size) = self.pixel_window_size {
                 (size.x, size.y, size.x as f32/size.y as f32)
             } else {
                 (dims.0, dims.1, aspect_ratio)
@@ -678,7 +678,7 @@ impl Application {
 
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
-                    window_dimensions: [w as f32, h as f32],
+                    window_dimensions: window_dimensions.as_array(),
                     aspect_ratio: aspect_ratio,
 
                     // line buffers
@@ -714,7 +714,7 @@ impl Application {
                     }
 
                     let draw_parameters = glium::draw_parameters::DrawParameters {
-                        blend: glium::Blend::alpha_blending(), 
+                        blend: glium::Blend::alpha_blending(),  
                         .. Default::default()
                     };
                 
