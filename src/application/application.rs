@@ -246,7 +246,7 @@ impl Application {
 
         // honestly this code is garbage, I hate it
 
-        let _draw_thread = {    
+        let draw_thread = {    
             let drawing_data = DrawingData {
                 pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, 
                                                                                         size.y as f32)),
@@ -332,7 +332,7 @@ impl Application {
         // update thread
         //
 
-        let _update_thread = {
+        let update_thread = {
             let states = states.clone();
             let state_data = state_data.clone();
             let mut last_update_time = Instant::now();
@@ -387,12 +387,25 @@ impl Application {
             })
         };
 
+        let mut draw_thread = Some(draw_thread);
+        let mut update_thread = Some(update_thread);
+
+        let mut join_threads = move || {
+            let draw_thread = std::mem::replace(&mut draw_thread, None);
+            let update_thread = std::mem::replace(&mut update_thread, None);  
+
+            draw_thread.map(|thread| thread.join());
+            update_thread.map(|thread| thread.join());
+        };
+
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
 
         // main loop
         event_loop.run(move |event, _, flow| { 
             if !running.load(std::sync::atomic::Ordering::SeqCst) {
+                join_threads();     
+
                 *flow = ControlFlow::Exit;
 
                 return;
@@ -413,6 +426,8 @@ impl Application {
             // dims as f32
             let w = dims.0 as f32;
             let h = dims.1 as f32;
+
+            let window_dimensions = Vec2::new(w, h);
             
             // used for scaling shapes
             let scaled_aspect_ratio = w / h;  
@@ -422,7 +437,12 @@ impl Application {
                 Event::WindowEvent {event, ..} => match event {
                     // if the window requests closing it, do so
                     WindowEvent::CloseRequested => {
+                        running.store(false,std::sync::atomic::Ordering::SeqCst);
+
+                        join_threads();
+
                         *flow = ControlFlow::Exit;
+
                         return;
                     },
                     // update cursor position when it is moved
@@ -432,7 +452,7 @@ impl Application {
                             position.y as f32
                         ) * window_dimensions_multiplier 
                           / window_dimensions * 2.0 - 1.0) * if let Some(size) = self.pixel_window_size {
-                              size.y as f32
+                              size.y as f32 / 2.0
                           } else {
                               1.0
                           };
