@@ -36,6 +36,7 @@ buffer mask_shape_buffer {
 };
 
 uniform vec2 window_dimensions;
+uniform float aspect_ratio;
 
 in vec2 v_texture_coords;
 in vec4 v_color;
@@ -66,8 +67,6 @@ vec4 ellipse() {
 }
 
 vec4 line(vec2 pos) {
-	const float aspect_ratio = window_dimensions.x/window_dimensions.y;
-
 	vec2 p0 = line_points[v_shape_index].xy;
 	vec2 p1 = line_points[v_shape_index].zw;
 

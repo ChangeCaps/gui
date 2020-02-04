@@ -679,6 +679,7 @@ impl Application {
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
                     window_dimensions: [w as f32, h as f32],
+                    aspect_ratio: aspect_ratio,
 
                     // line buffers
                     line_point_buffer: &line_point_buffer,
