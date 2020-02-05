@@ -597,7 +597,11 @@ impl Application {
 
                     *data = StateData {
                         delta_time: 0.016,
-                        frame_dimensions: Vec2::new(aspect_ratio * 2.0, 2.0),
+                        frame_dimensions: if let Some(size) = self.pixel_window_size {
+                            Vec2::new(size.x as f32, size.y as f32)
+                        } else {
+                            Vec2::new(aspect_ratio * 2.0, 2.0)
+                        },
                         scaled_frame_dimensions: Vec2::new(aspect_ratio * 2.0, 2.0),
                         window_dimensions: Vec2::new(self.window_size.x as f32, self.window_size.y as f32),
                         aspect_ratio,
