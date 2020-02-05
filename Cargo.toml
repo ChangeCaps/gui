@@ -1,5 +1,5 @@
 [package]
-name = "gui"
+name = "fumarole"
 version = "0.1.0"
 authors = ["Hjalte Nannestad"]
 edition = "2018"
