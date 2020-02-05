@@ -1,7 +1,6 @@
-extern crate gui;
+extern crate fumarole;
 
-use gui::*;
-use math::*;
+use fumarole::*;
 
 #[derive(Clone)]
 struct ImageExample {
