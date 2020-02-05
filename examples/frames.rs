@@ -10,11 +10,15 @@ struct ImageExample {
 
 impl State for ImageExample {
     fn draw(&self, frame: &mut Frame, _state_data: &StateData) {
+        let mut t = Transform::new();
+        t.position = Vec2::new(0.5, 0.5);
+
         let mut mask = frame.rect_mask()
+            .parent(t)
             .draw();
 
         mask.ellipse()
-            .position(Vec2::new(self.x, 0.0))
+            .parent(t)
             .draw();
     }
 

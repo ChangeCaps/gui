@@ -34,11 +34,13 @@ impl<'m> RectMask<'m> {
         }); 
 
 
-        transform.size.x /= if self.scaling {
-            self.drawing_data.scaled_aspect_ratio
+        if self.scaling {
+            transform.position.x /= self.drawing_data.scaled_aspect_ratio;
+            transform.size.x /= self.drawing_data.scaled_aspect_ratio;
         } else {
-            self.drawing_data.aspect_ratio
-        };
+            transform.position.x /= self.drawing_data.aspect_ratio;
+            transform.size.x /= self.drawing_data.aspect_ratio;
+        }
 
         transform.position += self.anchor.as_vec() * 
             if let Some(size) = self.drawing_data.pixel_window_dimensions {
