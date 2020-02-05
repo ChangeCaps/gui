@@ -42,12 +42,7 @@ impl<'m> RectMask<'m> {
             transform.size.x /= self.drawing_data.aspect_ratio;
         }
 
-        transform.position += self.anchor.as_vec() * 
-            if let Some(size) = self.drawing_data.pixel_window_dimensions {
-                size / 2.0
-            } else {
-                Vec2::new(1.0, 1.0)
-            };
+        transform.position += self.anchor.as_vec();
     
         // this could also be the length of either rect_mask_sizes or rect_mask_rotations
         // we just need the index

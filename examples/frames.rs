@@ -14,10 +14,12 @@ impl State for ImageExample {
 
         let mut mask = frame.rect_mask()
             .parent(t)
+            .anchor(Anchor::BottomLeft)
             .draw();
 
         mask.ellipse()
             .parent(t)
+            .anchor(Anchor::BottomLeft)
             .draw();
     }
 
@@ -32,6 +34,7 @@ fn main() {
     Application::new()
         .with_title("Image Example")
         .with_window_size(600, 400)
+        .with_pixel_window_size(4, 2)
         .run(|loader| {
             loader.load_image("assets/test_image.png", PNG);
 
