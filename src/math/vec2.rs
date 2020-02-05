@@ -1,3 +1,5 @@
+//! A vector with two values
+
 macro_rules! impl_op {
     ($op_trait:ident, $op_func:ident, $op:tt) => {
         impl<I> $op_trait<I> for Vec2<I> 

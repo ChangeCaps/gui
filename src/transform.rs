@@ -1,3 +1,6 @@
+//! Transform contains a position, a rotation, and a size used by every shape in fumarole
+
+
 use crate::*;
 use math::*;
 
@@ -18,6 +21,7 @@ impl Transform {
         }
     }
 
+    /// Transforms self by another transform
     #[inline]
     pub fn transform(mut self, other: Transform) -> Self {
         self.position *= other.size;

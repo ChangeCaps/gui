@@ -27,17 +27,19 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::sync_channel;
 use std::sync::atomic::AtomicBool;
 
+/// This is the struct responsible for running the program.
 pub struct Application {
-    pub title: &'static str,
-    pub frame_time: Duration,
-    pub aspect_ratio: Option<f32>,
-    pub resizable: bool,
-    pub window_size: Vec2<u32>,
-    pub pixel_window_size: Option<Vec2<u32>>,
-    pub depth_sorting: bool,
+    pub(crate) title: &'static str,
+    pub(crate) frame_time: Duration,
+    pub(crate) aspect_ratio: Option<f32>,
+    pub(crate) resizable: bool,
+    pub(crate) window_size: Vec2<u32>,
+    pub(crate) pixel_window_size: Option<Vec2<u32>>,
+    pub(crate) depth_sorting: bool,
 }
 
 impl Application {
+    /// Creates a new application
     pub fn new() -> Application {
         Application {
             title: "gui application",
@@ -50,41 +52,43 @@ impl Application {
         }
     }
 
+    /// Sets the title of the application
     pub fn with_title(mut self, title: &'static str) -> Application {
         self.title = title;
         self
     }
 
+    /// Sets the fps of the application
     pub fn with_fps(mut self, fps: f32) -> Application {
         self.frame_time = Duration::from_secs_f32(1.0/fps);
         self
     }
 
-    pub fn with_aspect_ratio(mut self, aspect_ratio: f32) -> Application {
-        self.aspect_ratio = Some(aspect_ratio);
-        self
-    }
-
+    /// Sets the window of the application to non-resizable
     pub fn not_resizable(mut self) -> Application {
         self.resizable = false;
         self
     }
 
+    /// Sets the window size of the application
     pub fn with_window_size(mut self, width: u32, height: u32) -> Application {
         self.window_size = Vec2::new(width, height);
         self
     }
 
+    /// Starts the application in pixel-mode with a given size
     pub fn with_pixel_window_size(mut self, width: u32, height: u32) -> Application {
         self.pixel_window_size = Some(Vec2::new(width, height));
         self
     }
 
+    /// Enables depth sorting
     pub fn with_depth_sorting(mut self, depth_sorting: bool) -> Application {
         self.depth_sorting = depth_sorting;
         self
     }
 
+    /// Runs the application and takes a closure that returns a Box containing the first state
     pub fn run<F>(self, mut start: F) 
         where F: FnMut(&mut super::super::Loader) -> Box<dyn State>
     {

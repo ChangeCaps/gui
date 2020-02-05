@@ -1,3 +1,5 @@
+//! Test and font stuff, it will be cleaned up later. Don't look here, it won't help you.
+
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io::Read;

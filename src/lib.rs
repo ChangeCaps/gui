@@ -1,3 +1,35 @@
+//! fumarole is a simple engine for simple games and gui applications alike.
+//! It uses glium for rendering, and it is quite efficient size it's a 2d engine
+//! and draws everything in the same draw call.
+//!
+//! # Example
+//! ```
+//! extern crate fumarole;
+//!
+//! use fumarole::*;
+//!
+//! struct Test {
+//!     x: f32
+//! };
+//!
+//! impl State for Test {
+//!     fn draw(&self, frame: &mut Frame, _data: &StateData) {
+//!         frame.rect()
+//!             .position(Vec2::new(self.x, 0.0))
+//!             .draw();
+//!     }
+//! }
+//!
+//! fn main() {
+//!     Application::new()
+//!         .run(|_loader| {
+//!             Box::new(Test {
+//!                 x: -1.0
+//!             }) 
+//!         });
+//! }
+//! ```
+
 #[macro_use]
 extern crate glium;
 extern crate image;
@@ -33,3 +65,4 @@ pub use glium::glutin::event::MouseButton;
 pub use text_input::*;
 pub(crate) use drawing_data::*;
 pub use transform::*;
+pub use math::*;
