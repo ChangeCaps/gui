@@ -1,7 +1,6 @@
-extern crate gui;
+extern crate fumarole;
 
-use gui::*;
-use math::*;
+use fumarole::*;
 
 #[derive(Clone)]
 struct ShapeExample;
@@ -24,7 +23,7 @@ impl State for ShapeExample {
                     Vec2::new(-0.2, 0.8),
                     Vec2::new(-0.2, -0.8),
                 )
-                .width(0.1)
+                .width(0.05)
                 .anchor(Anchor::MiddleRight)
                 .smooth(true)
                 .draw();
@@ -39,7 +38,7 @@ impl State for ShapeExample {
         
         frame.line()
             .points(
-                Vec2::new(0.2, 0.8),
+                Vec2::new(1.8, 0.8),
                 Vec2::new(0.2, -0.8),
             )
             .width(0.1)

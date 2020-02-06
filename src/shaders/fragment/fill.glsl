@@ -69,10 +69,11 @@ vec4 ellipse() {
 vec4 line(vec2 pos) {
 	vec2 p0 = line_points[v_shape_index].xy;
 	vec2 p1 = line_points[v_shape_index].zw;
+	p0.x *= aspect_ratio;
+	p1.x *= aspect_ratio;
+	pos.x *= aspect_ratio;
 
     vec2 diff = min_distance_line(p0, p1, pos);
-
-	diff.x *= aspect_ratio;
 
 	if (diff.x * diff.x + diff.y * diff.y <= pow(line_widths[v_shape_index] / 2.0, 2)) {
 		return v_color;
@@ -101,7 +102,7 @@ bool rect_mask(vec2 pos, int index) {
 	mat2 rotation = rect_mask_rotations[index];
 
 	pos -= position;
-	//pos *= -rotation;
+	pos *= -rotation;
 
 	if (abs(pos.x) <= size.x / 2.0 && abs(pos.y) <= size.y / 2.0) {
 		return true;
