@@ -10,3 +10,4 @@ edition = "2018"
 glium = "0.26.0-alpha6"
 image = "0.22"
 rusttype = "^0.3.0"
+serde = { version = "*", features = ["derive"] }

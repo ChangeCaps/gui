@@ -2,6 +2,7 @@
 extern crate glium;
 extern crate image;
 extern crate rusttype;
+extern crate serde;
 
 pub mod application;
 pub mod state;
