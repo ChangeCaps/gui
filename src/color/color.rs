@@ -1,3 +1,5 @@
+//! Simply a way to generate rgb colors by different means
+
 pub fn rgb(r: f32, g: f32, b: f32) -> [f32; 4] {
     [r, g, b, 1.0]
 }

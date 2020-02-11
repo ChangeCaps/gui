@@ -1,3 +1,5 @@
+//! Rendering in fumarole is handled by drawing 'Shapes' to the window.
+
 mod rect;
 mod anchor;
 mod line;

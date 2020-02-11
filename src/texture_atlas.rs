@@ -1,3 +1,6 @@
+//! Due to limitations in open-gl every image and font is stored in a texture atlas crated upon
+//! running the application.
+
 use super::*;
 use math::*;
 use glium::Rect;

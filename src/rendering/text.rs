@@ -5,6 +5,7 @@ pub struct Text<'s> {
     font: String,
     transform: Transform,
     parent: Transform,
+    masks: (i32, i32),
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
@@ -15,11 +16,12 @@ pub struct Text<'s> {
 }
 
 impl<'s> Text<'s> {
-    pub fn new(data: &'s mut DrawingData, font: String) -> Self {
+    pub fn new(data: &'s mut DrawingData, font: String, masks: (i32, i32)) -> Self {
         Self {
             font,
             transform: Transform::new(),
             parent: Transform::new(),
+            masks,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
@@ -127,15 +129,16 @@ impl<'s> Text<'s> {
 
         // calculate pivot
         let mut pivot = self.pivot.as_vec();
-        pivot.x *= total_text_width;
+        pivot.x *= total_text_width / 2.0;
         pivot.y += 0.5;
         pivot.y *= height;
 
-
         for vert in verts {
             let mut position = vert.0 - pivot;
+            
+            position.x -= total_text_width/2.0;
 
-            position.transform(self.transform);
+            position = position.transform(self.transform);
 
             if self.scaling {
                 position.x /= self.drawing_data.scaled_aspect_ratio;
@@ -154,8 +157,8 @@ impl<'s> Text<'s> {
                     depth: self.depth,
                     shape: 4,
                     shape_index: *index as i32,
-                    mask_length: 0,
-                    mask_index: 0,
+                    mask_length: self.masks.1,
+                    mask_index: self.masks.0,
                 }
             );
         }

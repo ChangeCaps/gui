@@ -1,3 +1,5 @@
+//! A text input, primarily use for text fields.
+
 use std::cell::RefCell;
 use std::rc::Rc;
 

@@ -1,3 +1,5 @@
+//! A matrix with two rows and columns.
+
 macro_rules! impl_op {
     ($op_trait:ident, $op_func:ident, $op:tt) => {
         impl<I> $op_trait<I> for Mat2<I> 

@@ -25,18 +25,21 @@ use std::collections::{HashMap, HashSet};
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::sync_channel;
+use std::sync::atomic::AtomicBool;
 
+/// This is the struct responsible for running the program.
 pub struct Application {
-    pub title: &'static str,
-    pub frame_time: Duration,
-    pub aspect_ratio: Option<f32>,
-    pub resizable: bool,
-    pub window_size: Vec2<u32>,
-    pub pixel_window_size: Option<Vec2<u32>>,
-    pub depth_sorting: bool,
+    pub(crate) title: &'static str,
+    pub(crate) frame_time: Duration,
+    pub(crate) aspect_ratio: Option<f32>,
+    pub(crate) resizable: bool,
+    pub(crate) window_size: Vec2<u32>,
+    pub(crate) pixel_window_size: Option<Vec2<u32>>,
+    pub(crate) depth_sorting: bool,
 }
 
 impl Application {
+    /// Creates a new application
     pub fn new() -> Application {
         Application {
             title: "gui application",
@@ -49,43 +52,45 @@ impl Application {
         }
     }
 
+    /// Sets the title of the application
     pub fn with_title(mut self, title: &'static str) -> Application {
         self.title = title;
         self
     }
 
+    /// Sets the fps of the application
     pub fn with_fps(mut self, fps: f32) -> Application {
         self.frame_time = Duration::from_secs_f32(1.0/fps);
         self
     }
 
-    pub fn with_aspect_ratio(mut self, aspect_ratio: f32) -> Application {
-        self.aspect_ratio = Some(aspect_ratio);
-        self
-    }
-
+    /// Sets the window of the application to non-resizable
     pub fn not_resizable(mut self) -> Application {
         self.resizable = false;
         self
     }
 
+    /// Sets the window size of the application
     pub fn with_window_size(mut self, width: u32, height: u32) -> Application {
         self.window_size = Vec2::new(width, height);
         self
     }
 
+    /// Starts the application in pixel-mode with a given size
     pub fn with_pixel_window_size(mut self, width: u32, height: u32) -> Application {
         self.pixel_window_size = Some(Vec2::new(width, height));
         self
     }
 
+    /// Enables depth sorting
     pub fn with_depth_sorting(mut self, depth_sorting: bool) -> Application {
         self.depth_sorting = depth_sorting;
         self
     }
 
+    /// Runs the application and takes a closure that returns a Box containing the first state
     pub fn run<F>(self, mut start: F) 
-        where F: FnMut(&mut super::super::Loader) -> Box<dyn State + Send>
+        where F: FnMut(&mut super::super::Loader) -> Box<dyn State>
     {
         //
         // initialization
@@ -177,7 +182,7 @@ impl Application {
             text_inputs: &mut text_inputs,
         };
 
-        let states: Arc<Mutex<Vec<Box<dyn State + Send>>>> = Arc::new(Mutex::new(vec![start(&mut loader)]));
+        let states: Arc<Mutex<Vec<Box<dyn State>>>> = Arc::new(Mutex::new(vec![start(&mut loader)]));
 
         
         let (image_atlas, image_positions, image_atlas_dimensions) = crate::texture_atlas::crate_atlas(&display, &mut loader.images, &mut loader.image_dimensions);
@@ -234,6 +239,8 @@ impl Application {
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Starting threads");
 
+        let running = Arc::new(AtomicBool::new(true));
+
         //
         // drawing thread
         //
@@ -241,12 +248,20 @@ impl Application {
         let (drawing_data_sender, drawing_data_receiver) = sync_channel::<DrawingData>(1);
         let (main_drawing_data_sender, main_drawing_data_receiver) = sync_channel::<DrawingData>(1);
 
-        {    
-            let mut drawing_data = DrawingData {
-                pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, size.y as f32)),
+        // honestly this code is garbage, I hate it
+
+        let draw_thread = {    
+            let drawing_data = DrawingData {
+                pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, 
+                                                                                        size.y as f32)),
                 line_points:                Vec::new(),
                 line_widths:                Vec::new(),
                 verts:                      Vec::new(),
+
+                mask_shapes:                Vec::new(),
+                rect_mask_positions:        Vec::new(),
+                rect_mask_sizes:            Vec::new(),
+                rect_mask_rotations:        Vec::new(),
 
                 // FIXME: cloning is bad, find another way
                 image_indecies:             image_indecies.clone(),
@@ -265,15 +280,17 @@ impl Application {
             let state_data = state_data.clone();
             let mut last_frame_vertex_count = 0;
             let frame_time = self.frame_time.clone();
+            let running = running.clone();
 
             // running drawing thread 
             thread::spawn(move || {
-                loop {
+                while running.load(std::sync::atomic::Ordering::SeqCst) {
                     let draw_start = Instant::now();
 
                     {
-                        let mut states = states.lock().unwrap();
-                        //println!("{:?}", Instant::now().duration_since(draw_start));
+                        let states = { 
+                            states.lock().unwrap().clone()
+                        };
                         
                         let mut drawing_data = main_drawing_data_receiver.try_recv().unwrap_or_else(|_| drawing_data.clone());
                         
@@ -297,7 +314,7 @@ impl Application {
                         );
 
                         // run shadow draw for all states
-                        states.iter_mut().for_each(|state| state.shadow_draw(
+                        states.iter().for_each(|state| state.shadow_draw(
                             &mut frame,
                             &state_data,
                         )); 
@@ -312,24 +329,28 @@ impl Application {
                         thread::sleep(duration);
                     });
                 }
-            });
-        }
+            })
+        };
 
         //
         // update thread
         //
 
-        {
+        let update_thread = {
             let states = states.clone();
             let state_data = state_data.clone();
             let mut last_update_time = Instant::now();
+            let running = running.clone();
 
             // running update thread
             thread::spawn(move || {
-                loop {
+                while running.load(std::sync::atomic::Ordering::SeqCst) {
                     let update_start = Instant::now();
 
                     {
+                        let delta_time = Instant::now().duration_since(last_update_time).as_secs_f32();
+                        last_update_time = Instant::now();
+
                         let mut states = states.lock().unwrap();
                         let mut state_data = {
                             state_data.lock().unwrap()
@@ -352,26 +373,48 @@ impl Application {
                             },
                             Transition::Pop => {
                                 states.pop();
+
+                                if states.len() == 0 {
+                                    running.store(false, std::sync::atomic::Ordering::SeqCst);
+                                }
                             },
                             Transition::None => (),
                         }
                         
-                        state_data.delta_time = Instant::now().duration_since(last_update_time).as_secs_f32();
-                        last_update_time = Instant::now();
+                        state_data.delta_time = delta_time;
                     }
                     
                     std::time::Duration::from_secs_f32(1.0/60.0).checked_sub(Instant::now().duration_since(update_start)).map(|duration| {
                         thread::sleep(duration);
                     });
                 }
-            });
-        }
+            })
+        };
+
+        let mut draw_thread = Some(draw_thread);
+        let mut update_thread = Some(update_thread);
+
+        let mut join_threads = move || {
+            let draw_thread = std::mem::replace(&mut draw_thread, None);
+            let update_thread = std::mem::replace(&mut update_thread, None);  
+
+            draw_thread.map(|thread| thread.join());
+            update_thread.map(|thread| thread.join());
+        };
 
         #[cfg(debug_assertions)]
         println!("GUI::APPLICATION Running main loop");
 
         // main loop
         event_loop.run(move |event, _, flow| { 
+            if !running.load(std::sync::atomic::Ordering::SeqCst) {
+                join_threads();     
+
+                *flow = ControlFlow::Exit;
+
+                return;
+            }
+
             // update next_frame_time
             if next_frame_time <= Instant::now() {
                 next_frame_time = Instant::now() + self.frame_time;
@@ -387,20 +430,23 @@ impl Application {
             // dims as f32
             let w = dims.0 as f32;
             let h = dims.1 as f32;
+
+            let window_dimensions = Vec2::new(w, h);
             
             // used for scaling shapes
-            let scaled_aspect_ratio = w / h;
-            
-            let frame_dimensions = Vec2::new(aspect_ratio * 2.0, 2.0);
-            let scaled_frame_dimensions = Vec2::new(scaled_aspect_ratio * 2.0, 2.0);
-            let window_dimensions = Vec2::new(w, h);
+            let scaled_aspect_ratio = w / h;  
 
             // event handling 
             match event {
                 Event::WindowEvent {event, ..} => match event {
                     // if the window requests closing it, do so
                     WindowEvent::CloseRequested => {
+                        running.store(false,std::sync::atomic::Ordering::SeqCst);
+
+                        join_threads();
+
                         *flow = ControlFlow::Exit;
+
                         return;
                     },
                     // update cursor position when it is moved
@@ -507,10 +553,8 @@ impl Application {
                 }, 
                 _ => return,
             }
-
-            // get a frame for drawing to the window and clear it
         
-            let (w, h, aspect_ratio) = if let Some(size) = self.pixel_window_size {
+            let (_, _, aspect_ratio) = if let Some(size) = self.pixel_window_size {
                 (size.x, size.y, size.x as f32/size.y as f32)
             } else {
                 (dims.0, dims.1, aspect_ratio)
@@ -518,11 +562,20 @@ impl Application {
           
             // run state functions
             {
+                // FIXME: all of the is bad, please clean this up later
                 let _ = main_drawing_data_sender.try_send(DrawingData {
                     pixel_window_dimensions:    self.pixel_window_size.map(|size| Vec2::new(size.x as f32, size.y as f32)),
+
+
                     line_points:                Vec::new(),
                     line_widths:                Vec::new(),
                     verts:                      Vec::new(),
+
+                    // masks
+                    mask_shapes:                Vec::new(),
+                    rect_mask_positions:        Vec::new(),
+                    rect_mask_sizes:            Vec::new(),
+                    rect_mask_rotations:        Vec::new(),
     
                     // FIXME: cloning is bad, find another way
                     image_indecies:             image_indecies.clone(),
@@ -538,12 +591,17 @@ impl Application {
                     image_positions:            image_positions.clone(),
                 });
 
+                // something something state_data
                 {
                     let mut data = state_data.lock().unwrap();
 
                     *data = StateData {
                         delta_time: 0.016,
-                        frame_dimensions: Vec2::new(aspect_ratio * 2.0, 2.0),
+                        frame_dimensions: if let Some(size) = self.pixel_window_size {
+                            Vec2::new(size.x as f32, size.y as f32)
+                        } else {
+                            Vec2::new(aspect_ratio * 2.0, 2.0)
+                        },
                         scaled_frame_dimensions: Vec2::new(aspect_ratio * 2.0, 2.0),
                         window_dimensions: Vec2::new(self.window_size.x as f32, self.window_size.y as f32),
                         aspect_ratio,
@@ -570,7 +628,9 @@ impl Application {
                 texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0); 
 
                 // line buffers only remake buffers if needed
-                if line_point_buffer.len() == drawing_data.line_points.len() && drawing_data.line_points.len() != 0 {
+                if line_point_buffer.len() == drawing_data.line_points.len() && 
+                    drawing_data.line_points.len() != 0 
+                {
                     line_point_buffer.write(&drawing_data.line_points);
                 } else if drawing_data.line_points.len() > 0 || line_point_buffer.len() > 0 {
                     line_point_buffer = glium::buffer::Buffer::<[[f32; 4]]>::new(
@@ -581,7 +641,9 @@ impl Application {
                     ).unwrap();
                 }
 
-                if line_width_buffer.len() == drawing_data.line_widths.len() && drawing_data.line_widths.len() != 0 {
+                if line_width_buffer.len() == drawing_data.line_widths.len() && 
+                    drawing_data.line_widths.len() != 0 
+                {
                     line_width_buffer.write(&drawing_data.line_widths);
                 } else if drawing_data.line_widths.len() > 0 || line_width_buffer.len() > 0 {
                     line_width_buffer = glium::buffer::Buffer::<[f32]>::new(
@@ -592,9 +654,40 @@ impl Application {
                     ).unwrap();
                 }
 
+                // masks
+                let mask_shape_buffer = glium::buffer::Buffer::<[[i32; 2]]>::new(
+                    &display, 
+                    &drawing_data.mask_shapes,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let rect_mask_position_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
+                    &display, 
+                    &drawing_data.rect_mask_positions,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let rect_mask_size_buffer = glium::buffer::Buffer::<[[f32; 2]]>::new(
+                    &display, 
+                    &drawing_data.rect_mask_sizes,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+                let rect_mask_rotation_buffer = glium::buffer::Buffer::<[[[f32; 2]; 2]]>::new(
+                    &display, 
+                    &drawing_data.rect_mask_rotations,
+                    glium::buffer::BufferType::ArrayBuffer,
+                    glium::buffer::BufferMode::Default,
+                ).unwrap();
+
+
                 // uniforms for scaling draw call
                 let uniforms = uniform!{
-                    window_dimensions: [w as f32, h as f32],
+                    window_dimensions: window_dimensions.as_array(),
+                    aspect_ratio: aspect_ratio,
 
                     // line buffers
                     line_point_buffer: &line_point_buffer,
@@ -607,12 +700,17 @@ impl Application {
                     // text
                     font_atlas: &font_atlas,
                     font_atlas_dimensions: font_atlas_dimensions.as_array(),
-                };
 
-                if drawing_data.verts.len() > 0 {
-                    // FIXME: creating a new vertex buffer every frame is slow, but for some
-                    // reason it would keep crashing if I were to write
+                    // masks
+                    mask_shape_buffer: &mask_shape_buffer,
 
+                    // rect mask
+                    rect_mask_position_buffer: &rect_mask_position_buffer,
+                    rect_mask_size_buffer: &rect_mask_size_buffer,
+                    rect_mask_rotation_buffer: &rect_mask_rotation_buffer,
+                }; 
+
+                if drawing_data.verts.len() > 0 { 
                     if self.depth_sorting {
                         drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap());
                     }
@@ -624,7 +722,7 @@ impl Application {
                     }
 
                     let draw_parameters = glium::draw_parameters::DrawParameters {
-                        blend: glium::Blend::alpha_blending(), 
+                        blend: glium::Blend::alpha_blending(),  
                         .. Default::default()
                     };
                 
@@ -642,11 +740,7 @@ impl Application {
                     frame.finish()
                         .expect("GUI::APPLICATION Failed to finish frame");
                 }
-            };
-            
-            // 
-            // transition handling
-            //
+            }; 
 
             // reset keypressed and released
             keys_pressed = HashSet::new();
@@ -655,7 +749,7 @@ impl Application {
             // reset mousepressed and released
             mouse_buttons_pressed = HashSet::new();
             mouse_buttons_released = HashSet::new();
-        });
+        }); 
     }
 }
 

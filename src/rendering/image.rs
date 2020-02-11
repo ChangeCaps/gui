@@ -5,6 +5,7 @@ pub struct Image<'s> {
     image: String,
     transform: Transform,     
     parent: Transform,
+    masks: (i32, i32),
     color: [f32; 4],
     anchor: Anchor,
     pivot: Anchor,
@@ -14,7 +15,7 @@ pub struct Image<'s> {
 }
 
 impl<'s> Image<'s> {
-    pub fn new(data: &'s mut DrawingData, image: String) -> Self {
+    pub fn new(data: &'s mut DrawingData, image: String, masks: (i32, i32)) -> Self {
         let index = *data.image_indecies.get(&image).unwrap();
 
         let dimensions = data.image_dimensions[index];
@@ -31,6 +32,7 @@ impl<'s> Image<'s> {
                 .. Default::default()
             },
             parent: Transform::new(),
+            masks,
             color: color::rgb(1.0, 1.0, 1.0),
             anchor: Anchor::Middle,
             pivot: Anchor::Middle,
@@ -76,8 +78,8 @@ impl<'s> Image<'s> {
                 depth: self.depth,
                 shape: 3,
                 shape_index: index as i32,
-                mask_length: 0,
-                mask_index: 0,
+                mask_length: self.masks.1,
+                mask_index: self.masks.0,
             });
         }
 

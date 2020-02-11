@@ -1,29 +1,32 @@
-extern crate gui;
+extern crate fumarole;
 
-use gui::*;
-use math::*;
+use fumarole::*;
 
+#[derive(Clone)]
 struct ImageExample {
     x: f32,
 }
 
 impl State for ImageExample {
-    fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
-        let mut f = frame.new_frame();
+    fn draw(&self, frame: &mut Frame, _state_data: &StateData) {
+        let mut t = Transform::new();
+        t.position = Vec2::new(0.5, 0.5);
 
-        f.rect()
-            .size(Vec2::new(2.0, 2.0))
-            .color(color::rgb(1.0, 0.0, 0.0))
+        let mut mask = frame.rect_mask()
+            .parent(t)
+            .anchor(Anchor::BottomLeft)
             .draw();
 
-        f.rect()
+        mask.ellipse()
+            .parent(t)
+            .anchor(Anchor::BottomLeft)
             .draw();
-        
-        frame.draw_frame(f)
-            .anchor(Anchor::TopLeft)
-            .draw();
+    }
 
-        self.x += _state_data.delta_time * 0.01;
+    fn update(&mut self, data: &StateData) -> Transition {
+        self.x += data.delta_time * 0.3;
+
+        Transition::None
     }
 }
 
@@ -31,12 +34,12 @@ fn main() {
     Application::new()
         .with_title("Image Example")
         .with_window_size(600, 400)
-        .with_pixel_window_size(300, 200)
+        .with_pixel_window_size(4, 2)
         .run(|loader| {
             loader.load_image("assets/test_image.png", PNG);
 
             Box::new(ImageExample {
-                x: 0.0
+                x: -2.0
             })
         });
 }

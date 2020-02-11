@@ -1,3 +1,5 @@
+//! Transitions between states are handled using the aptly named enum
+
 use super::State;
 
 pub enum Transition {

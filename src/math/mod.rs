@@ -1,3 +1,5 @@
+//! This is the math library for fumarole.
+
 mod vec2;
 mod mat2;
 

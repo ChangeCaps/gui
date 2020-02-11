@@ -1,3 +1,7 @@
+//! Used for loading images and fonts. When loading an asset, you provide an identification string
+//! for the purposes of drawing later in the program. It is usually the path to the asset but in
+//! some cases just an arbitrary string.
+
 use super::FontTexture;
 use super::TextInput;
 use super::math::*;
@@ -19,6 +23,7 @@ pub struct Loader<'s> {
 }
 
 impl<'s> Loader<'s> {
+    /// Loads font from a path and a font size
     pub fn load_font<P>(&mut self, path: P, font_size: u32) 
         where P: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
     {
@@ -39,6 +44,7 @@ impl<'s> Loader<'s> {
         self.font_character_infos.push(character_infos);
     }
 
+    /// Loads an image from a path
     pub fn load_image<P>(&mut self, path: P, format: image::ImageFormat) -> Vec2<u32>
         where P: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
     {
@@ -65,6 +71,7 @@ impl<'s> Loader<'s> {
         image_dimensions
     }
 
+    /// Loads an image from raw data
     pub fn load_image_from_raw<I>(&mut self, data: &[u8], format: image::ImageFormat, ident: I) -> Vec2<u32> 
         where I: Into<String> + AsRef<std::path::Path> + std::fmt::Display + Copy
     {
@@ -84,6 +91,7 @@ impl<'s> Loader<'s> {
         image_dimensions
     }
 
+    /// Crates a text input
     pub fn text_input(&mut self) -> TextInput {
         let cell = std::rc::Rc::new(std::cell::RefCell::new((String::new(), false)));
 

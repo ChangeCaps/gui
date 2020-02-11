@@ -2,14 +2,15 @@ extern crate gui;
 
 use gui::*;
 
+#[derive(Clone)]
 struct ImageExample {
     x: f32,
 }
 
 impl State for ImageExample {
-    fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
+    fn draw(&self, frame: &mut Frame, _state_data: &StateData) {
         frame.image("assets/test_image.png")
-            //.position(math::Vec2::new(self.x, 0.0))
+            .position(_state_data.mouse_position)
             //.anchor(Anchor::MiddleLeft)
             //.pivot(Anchor::MiddleLeft)
             .draw();
