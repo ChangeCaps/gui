@@ -12,7 +12,4 @@ description = "a simple 2d engine"
 glium = "0.26.0-alpha6"
 image = "0.22"
 rusttype = "^0.3.0"
-<<<<<<< HEAD
 serde = { version = "*", features = ["derive"] }
-=======
->>>>>>> 331ad1fd0be5180a65e13f6fa087c3b4dadfcf5e
