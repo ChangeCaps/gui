@@ -124,8 +124,13 @@ impl Application {
             include_str!("../shaders/vertex/simple_transform.glsl"), 
             include_str!("../shaders/fragment/fill.glsl"), 
             None
-        ).expect("GUI::INITIALIZATION Failed to load Simple Transform Fill shader");
+        );
 
+        if let Err(err) = &simple_transform_fill {
+            println!("{:?}", err)
+        }
+
+        let simple_transform_fill = simple_transform_fill.unwrap();
 
 
         #[cfg(debug_assertions)]

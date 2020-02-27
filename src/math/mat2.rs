@@ -75,7 +75,9 @@ use std::ops::{
     MulAssign,
     DivAssign,
 };
+use crate::serde::{Serialize, Deserialize};
 
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Mat2<I> {
     data: [[I; 2]; 2],
 }

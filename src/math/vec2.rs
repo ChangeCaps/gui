@@ -126,8 +126,9 @@ use std::ops::{
 };
 pub use crate::math::*;
 pub use crate::Transform;
+use crate::serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Vec2<I> {
     pub x: I,
     pub y: I,

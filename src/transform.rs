@@ -3,8 +3,9 @@
 
 use crate::*;
 use math::*;
+use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct Transform {
     pub position: Vec2<f32>,
     pub rotation: f32,
