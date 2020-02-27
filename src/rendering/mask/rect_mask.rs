@@ -28,11 +28,8 @@ impl<'m> RectMask<'m> {
     pub fn draw(self) -> Mask<'m> {
         let mut transform = self.transform.transform(self.parent);
 
-        self.drawing_data.pixel_window_dimensions.map(|dims| {
-            transform.position /= dims.y / 2.0;
-            transform.size /= dims.y / 2.0;
-        }); 
-
+        transform.position /= self.drawing_data.frame_size.y / 2.0;
+        transform.size /= self.drawing_data.frame_size.y / 2.0;
 
         if self.scaling {
             transform.position.x /= self.drawing_data.scaled_aspect_ratio;

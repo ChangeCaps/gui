@@ -37,12 +37,10 @@ impl<'s> Line<'s> {
     }
 
     pub fn draw(&mut self) {
-        self.drawing_data.pixel_window_dimensions.map(|dims| {
-            self.p0 /= dims.y / 2.0;
-            self.p1 /= dims.y / 2.0;
+        self.p0 /= self.drawing_data.frame_size.y / 2.0;
+        self.p1 /= self.drawing_data.frame_size.y / 2.0;
 
-            self.width /= dims.y / 2.0;
-        }); 
+        self.width /= self.drawing_data.frame_size.y / 2.0;
 
         let a = (self.p1 - self.p0).normalize();
         

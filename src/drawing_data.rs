@@ -19,7 +19,7 @@ pub struct DrawingData {
     pub(crate) rect_mask_rotations: Vec<[[f32; 2]; 2]>,
 
     // window information
-    pub(crate) pixel_window_dimensions: Option<Vec2<f32>>,
+    pub(crate) frame_size: Vec2<f32>,
     pub(crate) aspect_ratio: f32,
     pub(crate) scaled_aspect_ratio: f32,
 

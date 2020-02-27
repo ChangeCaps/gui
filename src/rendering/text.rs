@@ -48,10 +48,8 @@ impl<'s> Text<'s> {
             return self.transform;
         }
 
-        self.drawing_data.pixel_window_dimensions.map(|dims| {
-            self.transform.position /= dims.y / 2.0;
-            self.transform.size /= dims.y / 2.0;
-        }); 
+        self.transform.position /= self.drawing_data.frame_size.y / 2.0;
+        self.transform.size /= self.drawing_data.frame_size.y / 2.0;
 
         let index = self.drawing_data.font_indecies.get(&self.font).unwrap();
         let font = &self.drawing_data.font_character_infos[*index];

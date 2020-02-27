@@ -16,7 +16,7 @@ pub fn crate_atlas<D>(
     let mut atlas_dimensions = STARTING_DIMENSIONS;
 
     // make the dimensions vec hold the indecies of their respective images
-    let mut dimensions: Vec<(Vec2<u32>, usize)> = dimensions.iter().enumerate().map(|(i, x)| (*x, i)).collect();
+    let mut dimensions: Vec<(Vec2<u32>, usize)> = dimensions.iter().enumerate().map(|(i, x)| (*x + Vec2::new(5, 5), i)).collect();
 
     dimensions.sort_by(|a, b| b.0.x.min(b.0.y).partial_cmp(&a.0.x.min(a.0.y)).unwrap());
 
@@ -48,7 +48,10 @@ pub fn crate_atlas<D>(
 
     // draw the images onto the atlas
     for _ in 0..image_rects.len() {
-        let (rect, _) = image_rects.pop().unwrap();
+        let (mut rect, _) = image_rects.pop().unwrap();
+
+        rect.height -= 5;
+        rect.width -= 5;
 
         texture.write(rect, images.pop().unwrap());
     }

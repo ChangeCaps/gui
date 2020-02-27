@@ -31,10 +31,8 @@ impl<'s> Ellipse<'s> {
     pub fn draw(&mut self) -> Transform {
         self.transform = self.transform.transform(self.parent);
 
-        self.drawing_data.pixel_window_dimensions.map(|dims| {
-            self.transform.position /= dims.y / 2.0;
-            self.transform.size /= dims.y / 2.0;
-        }); 
+        self.transform.position /= self.drawing_data.frame_size.y / 2.0;
+        self.transform.size /= self.drawing_data.frame_size.y / 2.0;
 
         for vert in &RECT_VERTS {
             // calculate vertex positions

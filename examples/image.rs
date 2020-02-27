@@ -11,8 +11,7 @@ impl State for ImageExample {
     fn draw(&self, frame: &mut Frame, _state_data: &StateData) {
         frame.image("assets/test_image.png")
             .position(_state_data.mouse_position)
-            //.anchor(Anchor::MiddleLeft)
-            //.pivot(Anchor::MiddleLeft)
+            .pixel_scale(1.0)
             .draw();
     }
 }
@@ -20,7 +19,7 @@ impl State for ImageExample {
 fn main() {
     Application::new()
         .with_title("Image Example")
-        .with_pixel_window_size(100, 100)
+        .with_frame_size(100.0, 100.0)
         .run(|loader| {
             loader.load_image("assets/test_image.png", PNG);
 

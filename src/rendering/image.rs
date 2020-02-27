@@ -3,6 +3,7 @@ use math::*;
 
 pub struct Image<'s> {
     image: String,
+    dimensions: Vec2<f32>,
     transform: Transform,     
     parent: Transform,
     masks: (i32, i32),
@@ -23,12 +24,9 @@ impl<'s> Image<'s> {
 
         Self {
             image,
+            dimensions,
             transform: Transform {
-                size: if data.pixel_window_dimensions.is_some() {
-                    dimensions
-                } else {
-                    Vec2::new(dimensions.x/dimensions.y, 1.0)
-                },
+                size: Vec2::new(dimensions.x/dimensions.y, 1.0),
                 .. Default::default()
             },
             parent: Transform::new(),
@@ -42,6 +40,16 @@ impl<'s> Image<'s> {
         }
     } 
 
+    pub fn pixel_size(mut self, size: Vec2<f32>) -> Self {
+        self.transform.size = self.dimensions * size;
+        self
+    }
+
+    pub fn pixel_scale(mut self, scale: f32) -> Self {
+        self.transform.size = self.dimensions * scale;
+        self
+    }
+
     pub fn draw(mut self) -> Transform {
         let index = *self.drawing_data.image_indecies.get(&self.image).unwrap();
 
@@ -52,10 +60,8 @@ impl<'s> Image<'s> {
 
         self.transform = self.transform.transform(self.parent);
 
-        self.drawing_data.pixel_window_dimensions.map(|dims| {
-            self.transform.position /= dims.y / 2.0;
-            self.transform.size /= dims.y / 2.0;
-        }); 
+        self.transform.position /= self.drawing_data.frame_size.y / 2.0;
+        self.transform.size /= self.drawing_data.frame_size.y / 2.0;
 
         for vert in &RECT_VERTS {
             let mut position = *vert - self.pivot.as_vec() / 2.0;
