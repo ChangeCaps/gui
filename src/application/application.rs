@@ -727,15 +727,19 @@ impl Application {
                     };
                 
                     let mut frame = display.draw();
-                        frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
+                    frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
 
                     // draw the frame buffer to the window and handle errors
-                    let _ = frame.draw(&vertex_buffer,
+                    let _ = texture_buffer.as_surface().draw(&vertex_buffer,
                                        &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
                                        &simple_transform_fill,
                                        &uniforms,
                                        &draw_parameters);
 
+                    texture_buffer.as_surface().blit_whole_color_to(
+
+                    );
+                    
                     
                     frame.finish()
                         .expect("GUI::APPLICATION Failed to finish frame");
