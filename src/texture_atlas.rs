@@ -9,7 +9,7 @@ pub fn crate_atlas<D>(
     display: &glium::Display, 
     images: &mut Vec<glium::texture::RawImage2d<D>>, 
     dimensions: &Vec<Vec2<u32>>
-) -> (glium::texture::Texture2d, Vec<Vec2<f32>>, Vec2<f32>)
+) -> (glium::texture::SrgbTexture2d, Vec<Vec2<f32>>, Vec2<f32>)
     where D: Clone + glium::texture::PixelValue
 {
     const STARTING_DIMENSIONS: Vec2<u32> = Vec2 { x: 256, y: 256 };
@@ -36,7 +36,7 @@ pub fn crate_atlas<D>(
     image_rects.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
     // create texture
-    let texture = glium::texture::Texture2d::empty(display, atlas_dimensions.x, atlas_dimensions.y).unwrap();
+    let texture = glium::texture::SrgbTexture2d::empty(display, atlas_dimensions.x, atlas_dimensions.y).unwrap();
 
     let atlas_dimensions = Vec2::new(atlas_dimensions.x as f32, atlas_dimensions.y as f32);
     let image_positions = image_rects.iter().map(|(rect, _)| {

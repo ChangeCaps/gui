@@ -1,6 +1,6 @@
-extern crate gui;
+extern crate fumarole;
 
-use gui::*;
+use fumarole::*;
 
 #[derive(Clone)]
 struct ImageExample {
@@ -20,8 +20,7 @@ impl State for ImageExample {
 fn main() {
     Application::new()
         .with_title("Image Example")
-        .with_window_size(600, 400)
-        .with_fps(30.0)
+        .with_pixel_window_size(100, 100)
         .run(|loader| {
             loader.load_image("assets/test_image.png", PNG);
 
