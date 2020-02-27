@@ -630,7 +630,7 @@ impl Application {
                 let mut drawing_data = drawing_data.unwrap();
 
                 // clear color
-                texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 1.0); 
+                texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 0.0); 
 
                 // line buffers only remake buffers if needed
                 if line_point_buffer.len() == drawing_data.line_points.len() && 
@@ -731,16 +731,25 @@ impl Application {
                         .. Default::default()
                     };
                 
-                    let mut frame = display.draw();
-                        frame.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 0.0);
+                    let frame = display.draw();
 
                     // draw the frame buffer to the window and handle errors
-                    let _ = frame.draw(&vertex_buffer,
+                    let _ = texture_buffer.as_surface().draw(&vertex_buffer,
                                        &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
                                        &simple_transform_fill,
                                        &uniforms,
                                        &draw_parameters);
-
+                    
+                    texture_buffer.as_surface().blit_whole_color_to(
+                        &frame,
+                        &glium::BlitTarget {
+                            left: 0,
+                            bottom: 0,
+                            width: dims.0 as i32,
+                            height: dims.1 as i32
+                        },
+                        glium::uniforms::MagnifySamplerFilter::Nearest
+                    );
                     
                     frame.finish()
                         .expect("GUI::APPLICATION Failed to finish frame");
