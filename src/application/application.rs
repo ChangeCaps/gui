@@ -728,7 +728,11 @@ impl Application {
 
                 if drawing_data.verts.len() > 0 { 
                     if self.depth_sorting {
-                        drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap_or(std::cmp::Ordering::Equal));
+                        drawing_data.verts.sort_by(|a, b|  if let Some(ordering) = a.depth.partial_cmp(&b.depth) {
+                            ordering
+                        } else {
+                            panic!("{:?} {:?}", a, b)
+                        });
                     }
 
                     if vertex_buffer.len() == drawing_data.verts.len() && drawing_data.verts.len() > 0 {
