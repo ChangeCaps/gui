@@ -13,4 +13,4 @@ repository = "https://github.com/ChangeCaps/gui"
 glium = "0.26.0-alpha6"
 image = "0.22"
 rusttype = "^0.3.0"
-serde = { version = "*", features = ["derive"] }
+serde = { version = "1.0.104", features = ["derive"] }
