@@ -728,7 +728,7 @@ impl Application {
 
                 if drawing_data.verts.len() > 0 { 
                     if self.depth_sorting {
-                        drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).expect("failed to partial cmp"));
+                        drawing_data.verts.sort_by(|a, b| a.depth.partial_cmp(&b.depth).unwrap_or(std::cmp::Ordering::Equal));
                     }
 
                     if vertex_buffer.len() == drawing_data.verts.len() && drawing_data.verts.len() > 0 {
@@ -742,7 +742,7 @@ impl Application {
                         .. Default::default()
                     };
                 
-                    let mut frame = display.draw();
+                    let frame = display.draw();
 
                     // draw the frame buffer to the window and handle errors
                     let _ = texture_buffer.as_surface().draw(&vertex_buffer,
