@@ -31,7 +31,6 @@ use std::sync::atomic::AtomicBool;
 pub struct Application {
     pub(crate) title: &'static str,
     pub(crate) frame_time: Duration,
-    pub(crate) aspect_ratio: Option<f32>,
     pub(crate) resizable: bool,
     pub(crate) window_size: Vec2<u32>,
     pub(crate) frame_size: Option<Vec2<f32>>,
@@ -45,7 +44,6 @@ impl Application {
         Application {
             title: "gui application",
             frame_time: Duration::from_secs_f32(1.0/60.0),
-            aspect_ratio: None,
             resizable: true,
             frame_size: None,
             window_size: Vec2::new(800, 600),
@@ -216,7 +214,7 @@ impl Application {
         let size = self.pixel_window_size.unwrap_or(buffer_dimensions_u32);
 
         // create texture_buffer
-        let mut texture_buffer = glium::texture::texture2d::Texture2d::empty(
+        let mut texture_buffer = glium::texture::SrgbTexture2d::empty(
             &display,
             size.x, 
             size.y
@@ -553,7 +551,7 @@ impl Application {
                     },
                     WindowEvent::Resized(size) => {
                         if self.pixel_window_size.is_none() {
-                            texture_buffer = glium::texture::texture2d::Texture2d::empty(
+                            let texture_buffer = glium::texture::SrgbTexture2d::empty(
                                 &display,
                                 size.width as u32,
                                 size.height as u32,
@@ -640,8 +638,13 @@ impl Application {
 
                 let mut drawing_data = drawing_data.unwrap();
 
+                let mut frame_buffer = glium::framebuffer::SimpleFrameBuffer::new(
+                    &display,
+                    &texture_buffer
+                ).unwrap();
+
                 // clear color
-                texture_buffer.as_surface().clear_color(0.0, 0.0, 0.0, 0.0); 
+                frame_buffer.clear_color(0.0, 0.0, 0.0, 0.0); 
 
                 // line buffers only remake buffers if needed
                 if line_point_buffer.len() == drawing_data.line_points.len() && 
@@ -749,13 +752,13 @@ impl Application {
                     let frame = display.draw();
 
                     // draw the frame buffer to the window and handle errors
-                    let _ = texture_buffer.as_surface().draw(&vertex_buffer,
+                    let _ = frame_buffer.draw(&vertex_buffer,
                                        &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
                                        &simple_transform_fill,
                                        &uniforms,
                                        &draw_parameters); 
 
-                    texture_buffer.as_surface().blit_whole_color_to(
+                    frame_buffer.blit_whole_color_to(
                         &frame,
                         &glium::BlitTarget {
                             left: 0,
