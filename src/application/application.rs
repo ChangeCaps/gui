@@ -764,7 +764,7 @@ impl Application {
                             left: 0,
                             bottom: 0,
                             width: dims.0 as i32,
-                            height: dims.1 as i32
+                            height: dims.1 as i32,
                         },
                         glium::uniforms::MagnifySamplerFilter::Nearest
                     );
