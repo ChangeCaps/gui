@@ -1,14 +1,13 @@
-extern crate gui;
+extern crate fumarole;
 
-use gui::*;
-use math::*;
+use fumarole::*;
 
 struct PivotExample {
     rotation: f32
 }
 
 impl State for PivotExample { 
-    fn draw(&mut self, frame: &mut Frame, _state_data: &StateData) {
+    fn draw(&self, frame: &mut Frame, _state_data: &StateData) {
         let mut t = Transform::new();
 
         t.position = Vec2::new(0.0, 0.0);

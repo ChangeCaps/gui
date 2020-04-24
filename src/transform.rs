@@ -28,7 +28,10 @@ impl Transform {
         self.position *= other.size;
         self.position *= Mat2::<f32>::from_radians(other.rotation);
         self.position += other.position;
+
         self.rotation += other.rotation;
+
+        self.size *= other.size;
 
         self
     }
