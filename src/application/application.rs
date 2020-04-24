@@ -551,7 +551,7 @@ impl Application {
                     },
                     WindowEvent::Resized(size) => {
                         if self.pixel_window_size.is_none() {
-                            let texture_buffer = glium::texture::SrgbTexture2d::empty(
+                            texture_buffer = glium::texture::SrgbTexture2d::empty(
                                 &display,
                                 size.width as u32,
                                 size.height as u32,

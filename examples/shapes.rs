@@ -51,7 +51,6 @@ impl State for ShapeExample {
 fn main() {
     Application::new()
         .with_title("Shapes Example")
-        .not_resizable()
         .with_window_size(1000, 800)
         .run(|_| {
 

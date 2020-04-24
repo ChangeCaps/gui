@@ -69,9 +69,6 @@ vec4 ellipse() {
 vec4 line(vec2 pos) {
 	vec2 p0 = line_points[v_shape_index].xy;
 	vec2 p1 = line_points[v_shape_index].zw;
-	p0.x *= aspect_ratio;
-	p1.x *= aspect_ratio;
-	pos.x *= aspect_ratio;
 
     vec2 diff = min_distance_line(p0, p1, pos);
 
